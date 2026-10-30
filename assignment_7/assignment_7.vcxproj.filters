@@ -75,12 +75,18 @@
     <Text Include="Floor.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="Plane.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <Image Include="grassNorm.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="grassDiffuse.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="elevation_map.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

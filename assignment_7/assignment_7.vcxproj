@@ -41,10 +41,12 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Floor.txt" />
+    <Text Include="Plane.txt" />
     <Text Include="Screen.txt" />
     <Text Include="Suzanne.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="elevation_map.bmp" />
     <Image Include="grassDiffuse.bmp" />
     <Image Include="grassNorm.bmp" />
   </ItemGroup>
