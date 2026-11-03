@@ -13,13 +13,19 @@
 #endif
 
 // Constructor: compile shaders, link into program, glGetUniformLocation
-Shader::Shader(const std::string& vert_path, const std::string& frag_path, 
+Shader::Shader(const std::string& vert_path, const std::string& frag_path, const std::string& geom_path,
 			   const std::vector<std::string>& textureNames, int outputs) {
 	this->outputCount = outputs;
-	std::string vProg, fProg;
+	std::string vProg, fProg, gProg;
 	vProg = readShaderFile(vert_path);
 	fProg = readShaderFile(frag_path);
-	this->program = buildShaders(vProg.c_str(), fProg.c_str());
+	if (!geom_path.empty()) {
+		gProg = readShaderFile(geom_path);
+		this->program = buildShaders(vProg.c_str(), fProg.c_str(), gProg.c_str());
+	}
+	else {
+		this->program = buildShaders(vProg.c_str(), fProg.c_str(), NULL);
+	}
 	this->modelUniform = glGetUniformLocation(this->program, "model");
 
 	for (size_t i = 0; i < textureNames.size(); i++) {
@@ -52,7 +58,7 @@ std::string Shader::readShaderFile(std::string shader_path) {
 }
 
 // Helper function to compile shaders and link them into program
-GLuint Shader::buildShaders(const char* vertShader, const char* fragShader) {
+GLuint Shader::buildShaders(const char* vertShader, const char* fragShader, const char* geomShader) {
 	GLuint v = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(v, 1, &vertShader, NULL);
 
@@ -81,9 +87,28 @@ GLuint Shader::buildShaders(const char* vertShader, const char* fragShader) {
 		return 0;
 	}
 
+	GLuint g;
+	if (geomShader != NULL) {
+		g = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(g, 1, &geomShader, NULL);
+
+		glCompileShader(g);
+		// check for shader compile errorss
+		glGetShaderiv(g, GL_COMPILE_STATUS, &success);
+		if (!success)
+		{
+			glGetShaderInfoLog(g, 512, NULL, infoLog);
+			std::cout << "ERROR::SHADER::GEOMETRY::COMPILATION_FAILED\n" << infoLog << std::endl;
+			return 0;
+		}
+	}
+
 	GLuint p = glCreateProgram();
 	glAttachShader(p, v);
 	glAttachShader(p, f);
+	if (geomShader != NULL) {
+		glAttachShader(p, g);
+	}
 	glLinkProgram(p);
 
 	glGetProgramiv(p, GL_LINK_STATUS, &success);
@@ -96,6 +121,9 @@ GLuint Shader::buildShaders(const char* vertShader, const char* fragShader) {
 
 	glDeleteShader(v);
 	glDeleteShader(f);
+	if (geomShader != NULL) {
+		glDeleteShader(g);
+	}
 
 	return p;
 }

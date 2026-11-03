@@ -15,7 +15,7 @@
 class Shader {
 public:
 	// Constructor
-	Shader(const std::string& vert_path, const std::string& frag_path,
+	Shader(const std::string& vert_path, const std::string& frag_path, const std::string& geom_path,
 		const std::vector<std::string>& textureNames = { "albedo", "normal" },
 		int outputs = 1);
 
@@ -43,7 +43,7 @@ public:
 
 private:
 	std::string readShaderFile(std::string shader_path);
-	GLuint buildShaders(const char* vertShader, const char* fragShader);
+	GLuint buildShaders(const char* vertShader, const char* fragShader, const char* geomShader);
 	GLuint program{ 0 };
 	GLint modelUniform{ -1 };
 	std::vector<GLint> textureUniforms;
