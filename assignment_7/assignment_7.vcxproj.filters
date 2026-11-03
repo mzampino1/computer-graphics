@@ -50,6 +50,15 @@
     <None Include="shadow.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="terrain.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="terrain.geom">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="terrain.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mesh.hpp">
@@ -87,6 +96,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="elevation_map.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="atlas.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
