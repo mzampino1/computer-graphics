@@ -85,7 +85,7 @@ int main(int argc, char** argv)
 	{
 
 		// Load meshes, textures, and shaders
-		Mesh plane("Plane.txt", { "elevation_map.bmp", "atlas.bmp" });
+		Mesh plane("Plane.txt", { "heightmap.bmp", "atlas.bmp" });
 
 		std::vector<RenderObject> scene = {
 			{ &plane, glm::mat4(1.0f) }
@@ -148,7 +148,7 @@ int main(int argc, char** argv)
 			throw std::runtime_error("Shadow shader outputs don't match the sBuffer");
 		}
 
-		SDL_Surface* heightSurface = SDL_LoadBMP("elevation_map.bmp");
+		SDL_Surface* heightSurface = SDL_LoadBMP("heightmap.bmp");
 		if (heightSurface == nullptr)
 		{
 			throw std::runtime_error(std::string("Failed to load heightmap: ") + SDL_GetError());

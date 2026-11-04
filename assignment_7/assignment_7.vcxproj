@@ -48,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="atlas.bmp" />
-    <Image Include="elevation_map.bmp" />
+    <Image Include="heightmap.bmp" />
     <Image Include="grassDiffuse.bmp" />
     <Image Include="grassNorm.bmp" />
   </ItemGroup>

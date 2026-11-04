@@ -89,7 +89,7 @@
     <Image Include="grassDiffuse.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="elevation_map.bmp">
+    <Image Include="heightmap.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="atlas.bmp">
