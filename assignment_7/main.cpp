@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 	{
 
 		// Load meshes, textures, and shaders
-		Mesh plane("Plane.txt", { "heightmap.bmp", "atlas.bmp" });
+		Mesh plane("Plane.txt", { "elevation_map.bmp", "atlas.bmp" });
 
 		std::vector<RenderObject> scene = {
 			{ &plane, glm::mat4(1.0f) }
@@ -98,9 +98,9 @@ int main(int argc, char** argv)
 
 		// Construct view and projection matrices
 		glm::mat4 view = glm::lookAt(
-			glm::vec3(3.0f, 3.0f, 4.0f),  // Position
-			glm::vec3(0.0f, 0.0f, 0.0f),  // Looking at origin
-			glm::vec3(0.0f, 1.0f, 0.0f)   // Up vector
+			glm::vec3(0.0f, 1.2f, 2.2f),   // Position
+			glm::vec3(0.0f, 0.15f, 0.0f),  // Looking at
+			glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
 		);
 		glm::mat4 projection = glm::perspective(
 			glm::radians(45.0f),
