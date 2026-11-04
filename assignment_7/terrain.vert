@@ -22,7 +22,8 @@ void main()
 {
 	texCoord = uv;
 	const float amplitude = 0.4;
-	vec3 offset = amplitude * texture(height, uv).x * vec3(0.0, 1.0, 0.0);
+	vec2 hUV = clamp(uv, 0.5 / 1024.0, 1.0 - 0.5 / 1024.0);
+	vec3 offset = amplitude * texture(height, hUV).x * vec3(0.0, 1.0, 0.0);
 	vec3 position = pos.xyz + offset;
 	gl_Position = projection * view * model * vec4(position.xyz, 1.0);
 	vWorldPos = (model * vec4(position, 1.0)).xyz;
