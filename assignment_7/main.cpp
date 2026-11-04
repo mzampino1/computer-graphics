@@ -92,7 +92,7 @@ int main(int argc, char** argv)
 		Mesh screen("Screen.txt", {});
 
 		Shader terrain("terrain.vert", "terrain.frag", "terrain.geom", { "height", "atlas" }, 3);
-		Shader shadow("shadow.vert", "shadow.frag", "", {});
+		Shader shadow("shadow.vert", "shadow.frag", "", { "height" }, 1);
 		std::vector<std::string> texture_names = { "color", "gbuff_normal", "position", "shadowMap" };
 		Shader lighting("light.vert", "light.frag", "", texture_names);
 
