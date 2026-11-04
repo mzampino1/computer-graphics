@@ -20,8 +20,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-constexpr int RESX = 960;
-constexpr int RESY = 540;
+constexpr int RESX = 1920;
+constexpr int RESY = 1080;
 
 struct RenderObject {
 	Mesh* mesh;
@@ -32,6 +32,7 @@ int main(int argc, char** argv)
 {
 	//Window is created dynamically, so we use a window pointer
 	SDL_Window* window = nullptr;
+	SDL_Window* heightmapWindow = nullptr;
 	SDL_GLContext context;//This is our instance of OpenGL, it will be bound to a window
 
 	//This is just us initializing SDL with features we want
@@ -52,7 +53,8 @@ int main(int argc, char** argv)
 	//If no failure occurred, then we can build the window
 	//	The last argument are boolean flags we will append to in the future
 	window = SDL_CreateWindow("Your Very Own Window :)", RESX, RESY, SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS);
-	if (window == nullptr)
+	heightmapWindow = SDL_CreateWindow("Heightmap", 1024, 1024, 0);
+	if (window == nullptr or heightmapWindow == nullptr)
 	{
 		std::cerr << "Failed to create window: " << SDL_GetError();
 		SDL_Quit();
@@ -146,6 +148,15 @@ int main(int argc, char** argv)
 			throw std::runtime_error("Shadow shader outputs don't match the sBuffer");
 		}
 
+		SDL_Surface* heightSurface = SDL_LoadBMP("elevation_map.bmp");
+		if (heightSurface == nullptr)
+		{
+			throw std::runtime_error(std::string("Failed to load heightmap: ") + SDL_GetError());
+		}
+
+		SDL_BlitSurface(heightSurface, NULL, SDL_GetWindowSurface(heightmapWindow), NULL);
+		SDL_UpdateWindowSurface(heightmapWindow);
+
 		// SDL event loop
 		SDL_Event e;
 		float mouseX = 0.0f, mouseY = 0.0f;
@@ -228,10 +239,12 @@ int main(int argc, char** argv)
 			// Swap buffers
 			SDL_GL_SwapWindow(window);
 		}
+		SDL_DestroySurface(heightSurface);
 	}
 
 	//Clean up, usual FILO stack manner
 	SDL_GL_DestroyContext(context);
+	SDL_DestroyWindow(heightmapWindow);
 	SDL_DestroyWindow(window);
 	SDL_Quit();
 
