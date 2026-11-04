@@ -100,8 +100,8 @@ int main(int argc, char** argv)
 
 		// Construct view and projection matrices
 		glm::mat4 view = glm::lookAt(
-			glm::vec3(0.0f, 1.2f, 2.2f),   // Position
-			glm::vec3(0.0f, 0.15f, 0.0f),  // Looking at
+			glm::vec3(0.0f, 1.4f, 1.9f),   // Position
+			glm::vec3(0.0f, 0.1f, 0.0f),   // Looking at
 			glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
 		);
 		glm::mat4 projection = glm::perspective(
@@ -112,16 +112,16 @@ int main(int argc, char** argv)
 		);
 
 		// Construct lightView and ortho matrices
-		glm::vec3 lightDir = glm::vec3(1.0f, -1.0f, -1.0f);
+		glm::vec3 lightDir = glm::vec3(-1.0f, -0.8f, -0.4f);
 		glm::mat4 lightView = glm::lookAt(
-			glm::vec3(-5.0f, 5.0f, 5.0f),
+			glm::vec3(5.0f, 4.0f, 1.0f),
 			glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f)
 		);
 		glm::mat4 lightOrtho = glm::ortho(
-			-3.0f, 3.0f,   // left, right
-			-3.0f, 3.0f,   // bottom, top
-			0.1f, 15.0f    // near, far
+			-1.6f, 1.6f,   // left, right
+			-1.6f, 1.6f,   // bottom, top
+			0.1f, 10.0f    // near, far
 		);
 
 		// Set up uniform buffer objects (UBOs)
