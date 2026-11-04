@@ -20,7 +20,7 @@ def write_some_data(context, filepath, use_some_setting):
     for triangle in context.active_object.data.loop_triangles:
         for loop_index in triangle.loops:
             data_element = context.active_object.data.uv_layers[0].data[loop_index]
-            f.write(str(float(data_element.uv.x)) + ' ' + str(float(-data_element.uv.y)) + '\n')
+            f.write(str(float(data_element.uv.x)) + ' ' + str(float(1.0 - data_element.uv.y)) + '\n')
         
     f.close()
 

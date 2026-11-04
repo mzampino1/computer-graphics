@@ -26,7 +26,7 @@ void main()
 	          + step(HIGH_ELEVATION, displaced);
 
 	vec2 splat0 = 0.25 * uvs;
-	splat0.y += (3.0 - row) * 0.25; // uv Offset for elevation
+	splat0.y += row * 0.25; // uv Offset for elevation
 	vec2 splat1 = splat0;
 	splat1.x += 0.25; // Splat1 is the second texture – i.e., adjacent sub-texture in atlas
 
