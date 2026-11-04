@@ -81,29 +81,20 @@ int main(int argc, char** argv)
 	// This code in block so that mesh and shader destructors run before
 	// GL_DestroyContext
 	{
-		// Make array of texture file paths
-		std::vector<std::string> texturePaths = {
-			"grassDiffuse.bmp",
-			"grassNorm.bmp"
-		};
 
 		// Load meshes, textures, and shaders
-		Mesh suzanne("Suzanne.txt", texturePaths);
-		Mesh floor("Floor.txt", texturePaths);
+		Mesh plane("Plane.txt", { "heightmap.bmp", "atlas.bmp" });
 
-		glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
-		floorModel = glm::scale(floorModel, glm::vec3(10.0f, 1.0f, 10.0f));
 		std::vector<RenderObject> scene = {
-			{ &suzanne, glm::mat4(1.0f) },
-			{ &floor,   floorModel }
+			{ &plane, glm::mat4(1.0f) }
 		};
 
 		Mesh screen("Screen.txt", {});
 
-		Shader geometry("geo.vert", "geo.frag", {"albedo", "normal"}, 3);
-		Shader shadow("shadow.vert", "shadow.frag", {});
+		Shader terrain("terrain.vert", "terrain.frag", "terrain.geom", { "height", "atlas" }, 3);
+		Shader shadow("shadow.vert", "shadow.frag", "", {});
 		std::vector<std::string> texture_names = { "color", "gbuff_normal", "position", "shadowMap" };
-		Shader lighting("light.vert", "light.frag", texture_names);
+		Shader lighting("light.vert", "light.frag", "", texture_names);
 
 		// Construct view and projection matrices
 		glm::mat4 view = glm::lookAt(
@@ -136,7 +127,7 @@ int main(int argc, char** argv)
 		UBO<glm::mat4, 2> matrices(0);
 		matrices.updateData(view, 0);
 		matrices.updateData(projection, 1);
-		matrices.linkToProgram(geometry.getProgram(), "Matrices");
+		matrices.linkToProgram(terrain.getProgram(), "Matrices");
 
 		// Light UBO at binding point 1: lightView at index 0, lightOrtho at index 1
 		UBO<glm::mat4, 2> lightMatrices(1);
@@ -147,8 +138,8 @@ int main(int argc, char** argv)
 
 		// Make FBOs
 		Framebuffer gBuffer{ 3, RESX, RESY };
-		if (!geometry.canDrawTo(gBuffer)) {
-			throw std::runtime_error("Geometry shader outputs don't match the gBuffer");
+		if (!terrain.canDrawTo(gBuffer)) {
+			throw std::runtime_error("Terrain shader outputs don't match the gBuffer");
 		}
 		Framebuffer sBuffer{ 1, 1024, 1024 };
 		if (!shadow.canDrawTo(sBuffer)) {
@@ -206,7 +197,7 @@ int main(int argc, char** argv)
 			glEnable(GL_DEPTH_TEST);
 			// Render meshes into GBuffer textures
 			for (size_t i = 0; i < scene.size(); i++) {
-				geometry.draw(*scene[i].mesh, scene[i].model);
+				terrain.draw(*scene[i].mesh, scene[i].model);
 			}
 
 			// Shadow Pass

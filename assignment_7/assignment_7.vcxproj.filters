@@ -32,12 +32,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="geo.vert">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="geo.frag">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="light.frag">
       <Filter>Resource Files</Filter>
     </None>
