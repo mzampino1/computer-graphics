@@ -28,6 +28,9 @@ struct RenderObject {
 	glm::mat4 model;
 };
 
+void drawCircle(const glm::ivec2& mouseCoords, float radius, SDL_Surface* surface, bool add);
+void drawPixel(SDL_Surface* buff, size_t x, size_t y, const glm::ivec3& color);
+
 int main(int argc, char** argv)
 {
 	//Window is created dynamically, so we use a window pointer
@@ -148,22 +151,39 @@ int main(int argc, char** argv)
 			throw std::runtime_error("Shadow shader outputs don't match the sBuffer");
 		}
 
-		SDL_Surface* heightSurface = SDL_LoadBMP("heightmap.bmp");
-		if (heightSurface == nullptr)
+		SDL_Surface* heightmapSurface = SDL_LoadBMP("heightmap.bmp");
+		if (heightmapSurface == nullptr)
 		{
 			throw std::runtime_error(std::string("Failed to load heightmap: ") + SDL_GetError());
 		}
 
-		SDL_BlitSurface(heightSurface, NULL, SDL_GetWindowSurface(heightmapWindow), NULL);
+		SDL_BlitSurface(heightmapSurface, NULL, SDL_GetWindowSurface(heightmapWindow), NULL);
 		SDL_UpdateWindowSurface(heightmapWindow);
 
 		// SDL event loop
 		SDL_Event e;
 		float mouseX = 0.0f, mouseY = 0.0f;
+		float prevX = -1.0f, prevY = -1.0f;
 		bool quit = false;
+		bool clicking = false;
+		bool moved;
+		bool leftMouseButton;
+
 		while (!quit)
 		{
 			SDL_GetMouseState(&mouseX, &mouseY);
+			moved = (mouseX != prevX || mouseY != prevY);
+
+			if (SDL_GetMouseFocus() == heightmapWindow and clicking and moved) {
+				SDL_Surface *winSurface = SDL_GetWindowSurface(heightmapWindow);
+				drawCircle(glm::ivec2(mouseX, mouseY), 50, winSurface, leftMouseButton);
+				SDL_BlitSurface(winSurface, NULL, heightmapSurface, NULL);
+				SDL_UpdateWindowSurface(heightmapWindow);
+				plane.reuploadTexture(0, heightmapSurface);
+			}
+			prevX = mouseX;
+			prevY = mouseY;
+
 			//std::cout << "mouse coords: " << mouseX << ' ' << mouseY << '\n';
 			while (SDL_PollEvent(&e))
 			{
@@ -172,12 +192,20 @@ int main(int argc, char** argv)
 				case SDL_EVENT_QUIT: quit = true; break;
 				case SDL_EVENT_MOUSE_BUTTON_DOWN:
 				{
-
+					if (e.button.button == SDL_BUTTON_LEFT) {
+						// Left mouse button pressed
+						leftMouseButton = true;
+					}
+					else if (e.button.button == SDL_BUTTON_RIGHT) {
+						// Right mouse button pressed
+						leftMouseButton = false;
+					}
+					clicking = true;
 					break;
 				}
 				case SDL_EVENT_MOUSE_BUTTON_UP:
 				{
-
+					clicking = false;
 					break;
 				}
 				case SDL_EVENT_KEY_DOWN:
@@ -239,7 +267,7 @@ int main(int argc, char** argv)
 			// Swap buffers
 			SDL_GL_SwapWindow(window);
 		}
-		SDL_DestroySurface(heightSurface);
+		SDL_DestroySurface(heightmapSurface);
 	}
 
 	//Clean up, usual FILO stack manner
@@ -249,4 +277,53 @@ int main(int argc, char** argv)
 	SDL_Quit();
 
 	return 0;
+}
+
+void drawCircle(const glm::ivec2& mouseCoords, float radius, SDL_Surface* surface, bool add) {
+	int width = surface->w;
+	int height = surface->h;
+
+	float brushStrength = 15;
+	float distance;
+	float weight;
+	float new_color;
+
+	// Loop through all pixels, using LERP to determine 
+	// weight value from 0.0 to 1.0
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y < height; y++) {
+			// Read current RGB value at pixel (only need R since image is grayscale)
+			std::uint8_t r;
+			SDL_ReadSurfacePixel(surface, x, y, &r, NULL, NULL, NULL);
+
+			// weight = 1 - (euclidean distance from center / radius)
+			distance = std::sqrt((mouseCoords.x - x) * (mouseCoords.x - x)
+							 + (mouseCoords.y - y) * (mouseCoords.y - y));
+			weight = glm::clamp(1.0f - distance / radius, 0.0f, 1.0f);
+
+			if (add) {
+				new_color = glm::clamp(r + weight * brushStrength, 0.0f, 255.0f);
+			}
+			else {
+				new_color = glm::clamp(r - weight * brushStrength, 0.0f, 255.0f);
+			}
+
+			drawPixel(surface, x, y, glm::ivec3(new_color, new_color, new_color));
+		}
+	}
+}
+
+void drawPixel(SDL_Surface* buff, size_t x, size_t y, const glm::ivec3& color) {
+	// Make sure pixel is within window
+	if (x >= buff->w)
+	{
+		return;
+	}
+	if (y >= buff->h)
+	{
+		return;
+	}
+
+	std::uint32_t* pixels = static_cast<std::uint32_t*>(buff->pixels);
+	pixels[y * buff->w + x] = SDL_MapSurfaceRGBA(buff, color.x, color.y, color.z, 0xFF);
 }

@@ -144,8 +144,8 @@ Mesh::~Mesh() {
 	}
 }
 
-void Mesh::reuploadTexture(GLuint texID, SDL_Surface* surface) {
-	glBindTexture(GL_TEXTURE_2D, texID);
+void Mesh::reuploadTexture(size_t index, SDL_Surface* surface) {
+	glBindTexture(GL_TEXTURE_2D, textureIDs[index]);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

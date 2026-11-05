@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <SDL3/SDL.h>
 #ifdef __APPLE__
 #include <OpenGL/gl3.h>
 #else
@@ -17,7 +18,7 @@ public:
 	// Destructor: Deletes VBO and VAO
 	~Mesh();
 
-	void reuploadTexture(GLuint texID, SDL_Surface* surface);
+	void reuploadTexture(size_t index, SDL_Surface* surface);
 
 	// Getters
 	GLuint getVAO() const { 
