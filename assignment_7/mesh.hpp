@@ -17,6 +17,8 @@ public:
 	// Destructor: Deletes VBO and VAO
 	~Mesh();
 
+	void reuploadTexture(GLuint texID, SDL_Surface* surface);
+
 	// Getters
 	GLuint getVAO() const { 
 		return vao;
