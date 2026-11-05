@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 
 	//If no failure occurred, then we can build the window
 	//	The last argument are boolean flags we will append to in the future
-	window = SDL_CreateWindow("Your Very Own Window :)", RESX, RESY, SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS);
+	window = SDL_CreateWindow("Terrain", RESX, RESY, SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS);
 	heightmapWindow = SDL_CreateWindow("Heightmap", 1024, 1024, 0);
 	if (window == nullptr or heightmapWindow == nullptr)
 	{
