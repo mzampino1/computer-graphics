@@ -283,7 +283,7 @@ void drawCircle(const glm::ivec2& mouseCoords, float radius, SDL_Surface* surfac
 	int width = surface->w;
 	int height = surface->h;
 
-	float brushStrength = 15;
+	float brushStrength = 4;
 	float distance;
 	float weight;
 	float new_color;
