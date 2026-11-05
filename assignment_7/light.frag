@@ -43,7 +43,7 @@ void main()
 	float shadowMapDepth = texture(shadowMap, shadowUV_Depth.xy).r;
 	float thisDepth = shadowUV_Depth.z;
 
-	const float bias = 0.01; // increase as needed
+	const float bias = 0.001; // increase as needed
 	float shadow = (thisDepth - bias > shadowMapDepth) ? 0.0 : 1.0;
 	shadow = (thisDepth > 1.0) ? 1.0 : shadow;
 
