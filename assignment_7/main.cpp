@@ -164,10 +164,13 @@ int main(int argc, char** argv)
 		SDL_Event e;
 		float mouseX = 0.0f, mouseY = 0.0f;
 		float prevX = -1.0f, prevY = -1.0f;
+		float brushRadius = 60.0f;
+
 		bool quit = false;
 		bool clicking = false;
 		bool moved = false;
 		bool leftMouseButton = true;
+
 
 		while (!quit)
 		{
@@ -176,7 +179,7 @@ int main(int argc, char** argv)
 
 			if (SDL_GetMouseFocus() == heightmapWindow and clicking and moved) {
 				SDL_Surface *winSurface = SDL_GetWindowSurface(heightmapWindow);
-				drawCircle(glm::ivec2(mouseX, mouseY), 50, winSurface, leftMouseButton);
+				drawCircle(glm::ivec2(mouseX, mouseY), brushRadius, winSurface, leftMouseButton);
 				SDL_BlitSurface(winSurface, NULL, heightmapSurface, NULL);
 				SDL_UpdateWindowSurface(heightmapWindow);
 				plane.reuploadTexture(0, heightmapSurface);
@@ -210,6 +213,12 @@ int main(int argc, char** argv)
 				}
 				case SDL_EVENT_KEY_DOWN:
 				{
+					if (e.key.key >= SDLK_0 && e.key.key <= SDLK_9) {
+						int n = (int)(e.key.key - SDLK_0);
+						if (n == 0) n = 10;
+						brushRadius = n * 20.0f;
+						std::cout << "Brush radius: " << brushRadius << '\n';
+					}
 					switch (e.key.key)
 					{
 
@@ -283,7 +292,7 @@ void drawCircle(const glm::ivec2& mouseCoords, float radius, SDL_Surface* surfac
 	int width = surface->w;
 	int height = surface->h;
 
-	float brushStrength = 4;
+	float brushStrength = 2;
 	float distance;
 	float weight;
 	float new_color;
