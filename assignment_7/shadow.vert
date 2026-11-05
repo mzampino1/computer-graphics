@@ -13,7 +13,7 @@ layout (std140) uniform LightMatrices
 
 void main()
 {
-	const float amplitude = 0.4; // must match terrain.vert
+	const float amplitude = 0.5; // must match terrain.vert
 	vec2 hUV = clamp(uv, 0.5 / 1024.0, 1.0 - 0.5 / 1024.0);
 	vec3 offset = amplitude * texture(height, hUV).x * vec3(0.0, 1.0, 0.0);
 	vec3 position = pos + offset;

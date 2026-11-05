@@ -21,7 +21,7 @@ out vec3 vWorldPos;
 void main()
 {
 	texCoord = uv;
-	const float amplitude = 0.4;
+	const float amplitude = 0.5;
 	vec2 hUV = clamp(uv, 0.5 / 1024.0, 1.0 - 0.5 / 1024.0);
 	vec3 offset = amplitude * texture(height, hUV).x * vec3(0.0, 1.0, 0.0);
 	vec3 position = pos.xyz + offset;
