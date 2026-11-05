@@ -288,10 +288,15 @@ void drawCircle(const glm::ivec2& mouseCoords, float radius, SDL_Surface* surfac
 	float weight;
 	float new_color;
 
-	// Loop through all pixels, using LERP to determine 
-	// weight value from 0.0 to 1.0
-	for (int x = 0; x < width; x++) {
-		for (int y = 0; y < height; y++) {
+	int radius_int = (int)std::ceil(radius);
+
+	// Loop through pixels within bounding box of circle, 
+	// using LERP to determine weight value from 0.0 to 1.0
+	for (int x = mouseCoords.x - radius_int; x <= mouseCoords.x + radius_int; x++) {
+		for (int y = mouseCoords.y - radius_int; y <= mouseCoords.y + radius_int; y++) {
+			// Skip pixels outside the surface
+			if (x < 0 || y < 0 || x >= width || y >= height) continue;
+
 			// Read current RGB value at pixel (only need R since image is grayscale)
 			std::uint8_t r;
 			SDL_ReadSurfacePixel(surface, x, y, &r, NULL, NULL, NULL);
