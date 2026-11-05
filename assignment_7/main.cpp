@@ -160,6 +160,10 @@ int main(int argc, char** argv)
 		SDL_BlitSurface(heightmapSurface, NULL, SDL_GetWindowSurface(heightmapWindow), NULL);
 		SDL_UpdateWindowSurface(heightmapWindow);
 
+		std::cout << "Controls:\n";
+		std::cout << "Hold left click to raise terrain, right click to lower terrain\n";
+		std::cout << "Use number keys to change brush radius\n";
+
 		// SDL event loop
 		SDL_Event e;
 		float mouseX = 0.0f, mouseY = 0.0f;
@@ -170,7 +174,6 @@ int main(int argc, char** argv)
 		bool clicking = false;
 		bool moved = false;
 		bool leftMouseButton = true;
-
 
 		while (!quit)
 		{
