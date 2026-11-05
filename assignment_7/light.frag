@@ -54,7 +54,7 @@ void main()
 	}
 
 	// Ambient keeps shadowed areas from being black
-    vec3 ambient = 0.10 * albedo;
+    vec3 ambient = 0.25 * albedo;
 
     fragColor = vec4(ambient + shadow * diffuse, 1.0);
 }
