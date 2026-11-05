@@ -189,7 +189,7 @@ int main(int argc, char** argv)
 			{
 				switch (e.type)
 				{
-				case SDL_EVENT_QUIT: quit = true; break;
+				case SDL_EVENT_WINDOW_CLOSE_REQUESTED: quit = true; break;
 				case SDL_EVENT_MOUSE_BUTTON_DOWN:
 				{
 					if (e.button.button == SDL_BUTTON_LEFT) {
