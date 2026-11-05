@@ -311,8 +311,8 @@ void drawCircle(const glm::ivec2& mouseCoords, float radius, SDL_Surface* surfac
 			SDL_ReadSurfacePixel(surface, x, y, &r, NULL, NULL, NULL);
 
 			// weight = 1 - (euclidean distance from center / radius)
-			distance = std::sqrt((mouseCoords.x - x) * (mouseCoords.x - x)
-							 + (mouseCoords.y - y) * (mouseCoords.y - y));
+			distance = float(std::sqrt((mouseCoords.x - x) * (mouseCoords.x - x)
+							 + (mouseCoords.y - y) * (mouseCoords.y - y)));
 			weight = glm::clamp(1.0f - distance / radius, 0.0f, 1.0f);
 
 			if (add) {
