@@ -166,8 +166,8 @@ int main(int argc, char** argv)
 		float prevX = -1.0f, prevY = -1.0f;
 		bool quit = false;
 		bool clicking = false;
-		bool moved;
-		bool leftMouseButton;
+		bool moved = false;
+		bool leftMouseButton = true;
 
 		while (!quit)
 		{
