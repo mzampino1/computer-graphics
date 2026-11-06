@@ -328,7 +328,7 @@ void drawCircle(const glm::ivec2& mouseCoords, float radius, SDL_Surface* surfac
 
 			color_int = (int)std::round(new_color);
 
-			drawPixel(surface, x, y, glm::ivec3(new_color, new_color, new_color));
+			drawPixel(surface, x, y, glm::ivec3(color_int, color_int, color_int));
 		}
 	}
 }
