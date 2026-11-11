@@ -93,11 +93,9 @@ int main(int argc, char** argv)
 		Mesh sphere("Sphere.txt", { "marbleDiffuse.bmp", "marbleNorm.bmp" });
 		Mesh floor("Floor.txt", texturePaths);
 
-		glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
-		floorModel = glm::rotate(floorModel, glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-		floorModel = glm::scale(floorModel, glm::vec3(10.0f, 1.0f, 10.0f));
+		float floorAngle = 0.0f;
 		std::vector<RenderObject> scene = {
-			{ &floor,   floorModel }
+			{ &floor, glm::mat4(1.0f) }
 		};
 
 		// Set up PBD demo (marble on ramp)
@@ -181,6 +179,21 @@ int main(int argc, char** argv)
 			float dt = (now - lastTime) / 1e9f;
 			lastTime = now;
 			dt = std::min(dt, 1.0f / 30.0f);
+
+			// Floor tilt (hold A / D)
+			const bool* keys = SDL_GetKeyboardState(NULL);
+			const float tiltSpeed = 15.0f; // degrees per second
+			if (keys[SDL_SCANCODE_A]) floorAngle += tiltSpeed * dt;
+			if (keys[SDL_SCANCODE_D]) floorAngle -= tiltSpeed * dt;
+			floorAngle = glm::clamp(floorAngle, -45.0f, 45.0f);
+
+			glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
+			floorModel = glm::rotate(floorModel, glm::radians(floorAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+			scene[0].model = glm::scale(floorModel, glm::vec3(10.0f, 1.0f, 10.0f));
+
+			solver.groundPoint = glm::vec3(floorModel * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+			solver.groundNormal = glm::normalize(glm::vec3(floorModel * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f)));
+
 			solver.step(dt);
 
 			// Add spheres to the scene for particles

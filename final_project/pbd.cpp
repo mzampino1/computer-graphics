@@ -1,15 +1,15 @@
 #include "pbd.hpp"
 #include <cmath>
 
-// Ramp (infinite tilted plane, rampAngle must match rotation in main.cpp)
-static const float     rampAngle = glm::radians(15.0f);
-static const glm::vec3 rampPoint = glm::vec3(0.0f, -2.0f, 0.0f);
-static const glm::vec3 rampNormal = glm::vec3(-std::sin(rampAngle), std::cos(rampAngle), 0.0f);
-
 void PBDSolver::step(float dt) {
 	float subDt = dt / substeps;
 
 	for (int s = 0; s < substeps; s++) {
+		// Partially tilt ground
+		float t = float(s + 1) / substeps;
+		substepGroundPoint = glm::mix(prevGroundPoint, groundPoint, t);
+		substepGroundNormal = glm::normalize(glm::mix(prevGroundNormal, groundNormal, t));
+
 		// Apply gravity, move to a new predicted position
 		for (size_t i = 0; i < particles.size(); i++) {
 			Particle& p = particles[i];
@@ -30,6 +30,8 @@ void PBDSolver::step(float dt) {
 			p.velocity = (p.pos - p.prevPos) / subDt;
 		}
 	}
+	prevGroundPoint = groundPoint;
+	prevGroundNormal = groundNormal;
 }
 
 void PBDSolver::solveParticleCollisions() {
@@ -62,9 +64,9 @@ void PBDSolver::solveGroundCollisions() {
 		if (p.invMass == 0.0f) continue; // pinned
 
 		// Signed distance from plane to surface of particle
-		float d = glm::dot(p.pos - rampPoint, rampNormal) - p.radius;
+		float d = glm::dot(p.pos - substepGroundPoint, substepGroundNormal) - p.radius;
 		if (d < 0.0f) {
-			p.pos -= d * rampNormal;
+			p.pos -= d * groundNormal;
 		}
 	}
 }
