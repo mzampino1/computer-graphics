@@ -109,6 +109,8 @@ int main(int argc, char** argv)
 		marble.invMass = 1.0f;
 		solver.particles.push_back(marble);
 
+		std::vector<Particle> initialParticles = solver.particles; // snapshot for reset
+
 		Mesh screen("Screen.txt", {});
 
 		Shader geometry("geo.vert", "geo.frag", {"albedo", "normal"}, 3);
@@ -214,7 +216,8 @@ int main(int argc, char** argv)
 
 					case SDLK_SPACE:
 					{
-
+						// Reset particles
+						solver.particles = initialParticles;
 						break;
 					}
 					case SDLK_T:
