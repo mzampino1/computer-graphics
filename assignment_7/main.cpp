@@ -117,7 +117,7 @@ int main(int argc, char** argv)
 		// Construct lightView and ortho matrices
 		glm::vec3 lightDir = glm::vec3(-1.0f, -0.8f, -0.4f);
 		glm::mat4 lightView = glm::lookAt(
-			glm::vec3(5.0f, 4.0f, 1.0f),
+			-5.0f * lightDir,
 			glm::vec3(0.0f, 0.0f, 0.0f),
 			glm::vec3(0.0f, 1.0f, 0.0f)
 		);
