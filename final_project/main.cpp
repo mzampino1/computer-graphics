@@ -2,10 +2,12 @@
 #include "shader.hpp"
 #include "framebuffer.hpp"
 #include "ubo.hpp"
+#include "pbd.hpp"
 
 #include <iostream>
 #include <vector>
 #include <string>
+#include <algorithm>
 #include <cstdint>
 #include <cmath>
 #include <SDL3/SDL.h>
@@ -51,7 +53,7 @@ int main(int argc, char** argv)
 
 	//If no failure occurred, then we can build the window
 	//	The last argument are boolean flags we will append to in the future
-	window = SDL_CreateWindow("Your Very Own Window :)", RESX, RESY, SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS);
+	window = SDL_CreateWindow("Marble Race", RESX, RESY, SDL_WINDOW_OPENGL | SDL_WINDOW_INPUT_FOCUS);
 	if (window == nullptr)
 	{
 		std::cerr << "Failed to create window: " << SDL_GetError();
@@ -88,14 +90,24 @@ int main(int argc, char** argv)
 		};
 
 		// Load meshes, textures, and shaders
-		Mesh suzanne("Suzanne.txt", texturePaths);
+		Mesh sphere("Sphere.txt", { "marbleDiffuse.bmp", "marbleNorm.bmp" });
 		Mesh floor("Floor.txt", texturePaths);
 
 		glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
+		floorModel = glm::rotate(floorModel, glm::radians(15.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		floorModel = glm::scale(floorModel, glm::vec3(10.0f, 1.0f, 10.0f));
 		std::vector<RenderObject> scene = {
 			{ &floor,   floorModel }
 		};
+
+		// Set up PBD demo (marble on ramp)
+		PBDSolver solver;
+		Particle marble;
+		marble.pos = marble.prevPos = glm::vec3(2.0f, 0.0f, 0.0f);
+		marble.velocity = glm::vec3(0.0f);
+		marble.radius = 1.0f;
+		marble.invMass = 1.0f;
+		solver.particles.push_back(marble);
 
 		Mesh screen("Screen.txt", {});
 
@@ -106,9 +118,9 @@ int main(int argc, char** argv)
 
 		// Construct view and projection matrices
 		glm::mat4 view = glm::lookAt(
-			glm::vec3(3.0f, 3.0f, 4.0f),  // Position
-			glm::vec3(0.0f, 0.0f, 0.0f),  // Looking at origin
-			glm::vec3(0.0f, 1.0f, 0.0f)   // Up vector
+			glm::vec3(0.0f, 0.5f, 15.0f),  // Position
+			glm::vec3(0.0f, -2.0f, 0.0f),  // Looking at origin
+			glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
 		);
 		glm::mat4 projection = glm::perspective(
 			glm::radians(45.0f),
@@ -125,9 +137,9 @@ int main(int argc, char** argv)
 			glm::vec3(0.0f, 1.0f, 0.0f)
 		);
 		glm::mat4 lightOrtho = glm::ortho(
-			-3.0f, 3.0f,   // left, right
-			-3.0f, 3.0f,   // bottom, top
-			0.1f, 15.0f    // near, far
+			-15.0f, 15.0f,   // left, right
+			-13.0f, 10.0f,   // bottom, top
+			-2.0f, 22.0f    // near, far
 		);
 
 		// Set up uniform buffer objects (UBOs)
@@ -154,12 +166,30 @@ int main(int argc, char** argv)
 			throw std::runtime_error("Shadow shader outputs don't match the sBuffer");
 		}
 
+		Uint64 lastTime = SDL_GetTicksNS();
+
 		// SDL event loop
 		SDL_Event e;
 		float mouseX = 0.0f, mouseY = 0.0f;
 		bool quit = false;
 		while (!quit)
 		{
+			// PBD update
+			Uint64 now = SDL_GetTicksNS();
+			float dt = (now - lastTime) / 1e9f;
+			lastTime = now;
+			dt = std::min(dt, 1.0f / 30.0f);
+			solver.step(dt);
+
+			// Add spheres to the scene for particles
+			std::vector<RenderObject> frameScene = scene;
+			for (size_t i = 0; i < solver.particles.size(); i++) {
+				const Particle& p = solver.particles[i];
+				glm::mat4 model = glm::translate(glm::mat4(1.0f), p.pos);
+				model = glm::scale(model, glm::vec3(p.radius));
+				frameScene.push_back({ &sphere, model });
+			}
+
 			SDL_GetMouseState(&mouseX, &mouseY);
 			//std::cout << "mouse coords: " << mouseX << ' ' << mouseY << '\n';
 			while (SDL_PollEvent(&e))
@@ -204,8 +234,8 @@ int main(int argc, char** argv)
 			gBuffer.clear(0.5f, 0.5f, 0.5f);
 			glEnable(GL_DEPTH_TEST);
 			// Render meshes into GBuffer textures
-			for (size_t i = 0; i < scene.size(); i++) {
-				geometry.draw(*scene[i].mesh, scene[i].model);
+			for (size_t i = 0; i < frameScene.size(); i++) {
+				geometry.draw(*frameScene[i].mesh, frameScene[i].model);
 			}
 
 			// Shadow Pass
@@ -213,8 +243,8 @@ int main(int argc, char** argv)
 			sBuffer.clear(1.0f, 1.0f, 1.0f);
 			glEnable(GL_DEPTH_TEST);
 			// Render meshes into sBuffer
-			for (size_t i = 0; i < scene.size(); i++) {
-				shadow.draw(*scene[i].mesh, scene[i].model);
+			for (size_t i = 0; i < frameScene.size(); i++) {
+				shadow.draw(*frameScene[i].mesh, frameScene[i].model);
 			}
 
 			// Lighting Pass

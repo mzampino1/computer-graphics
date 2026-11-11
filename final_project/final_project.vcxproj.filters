@@ -30,6 +30,9 @@
     <ClCompile Include="framebuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pbd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="geo.vert">
@@ -64,6 +67,9 @@
     <ClInclude Include="framebuffer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="pbd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="Screen.txt">
@@ -72,12 +78,21 @@
     <Text Include="Floor.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="Sphere.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <Image Include="grassNorm.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="grassDiffuse.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="marbleDiffuse.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="marbleNorm.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -23,6 +23,7 @@
     <ClCompile Include="glew.c" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="pbd.cpp" />
     <ClCompile Include="shader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -36,16 +37,20 @@
   <ItemGroup>
     <ClInclude Include="framebuffer.hpp" />
     <ClInclude Include="mesh.hpp" />
+    <ClInclude Include="pbd.hpp" />
     <ClInclude Include="shader.hpp" />
     <ClInclude Include="ubo.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Floor.txt" />
     <Text Include="Screen.txt" />
+    <Text Include="Sphere.txt" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="grassDiffuse.bmp" />
     <Image Include="grassNorm.bmp" />
+    <Image Include="marbleDiffuse.bmp" />
+    <Image Include="marbleNorm.bmp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
