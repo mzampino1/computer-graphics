@@ -166,6 +166,8 @@ int main(int argc, char** argv)
 			throw std::runtime_error("Shadow shader outputs don't match the sBuffer");
 		}
 
+		const float PHYSICS_DT = 1.0f / 120.0f;
+		float accumulator = 0.0f;
 		Uint64 lastTime = SDL_GetTicksNS();
 
 		// SDL event loop
@@ -176,25 +178,28 @@ int main(int argc, char** argv)
 		{
 			// PBD update
 			Uint64 now = SDL_GetTicksNS();
-			float dt = (now - lastTime) / 1e9f;
+			float frameTime = (now - lastTime) / 1e9f;
 			lastTime = now;
-			dt = std::min(dt, 1.0f / 30.0f);
+			accumulator += std::min(frameTime, 0.25f);
 
-			// Floor tilt (hold A / D)
-			const bool* keys = SDL_GetKeyboardState(NULL);
-			const float tiltSpeed = 15.0f; // degrees per second
-			if (keys[SDL_SCANCODE_A]) floorAngle += tiltSpeed * dt;
-			if (keys[SDL_SCANCODE_D]) floorAngle -= tiltSpeed * dt;
-			floorAngle = glm::clamp(floorAngle, -45.0f, 45.0f);
+			while (accumulator >= PHYSICS_DT) {
+				// Floor tilt (hold A / D)
+				const bool* keys = SDL_GetKeyboardState(NULL);
+				const float tiltSpeed = 15.0f; // degrees per second
+				if (keys[SDL_SCANCODE_A]) floorAngle += tiltSpeed * PHYSICS_DT;
+				if (keys[SDL_SCANCODE_D]) floorAngle -= tiltSpeed * PHYSICS_DT;
+				floorAngle = glm::clamp(floorAngle, -45.0f, 45.0f);
 
-			glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
-			floorModel = glm::rotate(floorModel, glm::radians(floorAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-			scene[0].model = glm::scale(floorModel, glm::vec3(10.0f, 1.0f, 10.0f));
+				glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
+				floorModel = glm::rotate(floorModel, glm::radians(floorAngle), glm::vec3(0.0f, 0.0f, 1.0f));
+				scene[0].model = glm::scale(floorModel, glm::vec3(10.0f, 1.0f, 10.0f));
 
-			solver.groundPoint = glm::vec3(floorModel * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-			solver.groundNormal = glm::normalize(glm::vec3(floorModel * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f)));
+				solver.groundPoint = glm::vec3(floorModel * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+				solver.groundNormal = glm::normalize(glm::vec3(floorModel * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f)));
 
-			solver.step(dt);
+				solver.step(PHYSICS_DT);
+				accumulator -= PHYSICS_DT;
+			}
 
 			// Add spheres to the scene for particles
 			std::vector<RenderObject> frameScene = scene;
