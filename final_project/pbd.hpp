@@ -22,6 +22,10 @@ public:
 	glm::vec3 prevGroundPoint{ 0.0f, -2.0f, 0.0f };
 	glm::vec3 prevGroundNormal{ 0.0f, 1.0f, 0.0f };
 
+	// Collision elasticity (0 = no bounce, 1 = perfectly elastic)
+	float particleRestitution = 0.7f;   // marble, marble
+	float groundRestitution = 0.3f;   // marble, ground
+
 	void step(float dt);
 private:
 	void solveParticleCollisions();
@@ -29,4 +33,14 @@ private:
 	// Ground state for the current substep, interpolated between
 	// the previous frame and the current frame
 	glm::vec3 substepGroundPoint, substepGroundNormal;
+
+	// Collision recorded during a substep, used to add bounce afterward
+	struct Contact {
+		size_t particle1, particle2;
+		bool groundCollision; // true when particle1 hits the ground
+		glm::vec3 normal;     // points from particle2 (or the ground) toward particle1
+		float vnBefore;       // speed along normal before collision solved (< 0 = approaching)
+	};
+	std::vector<Contact> contacts;
+	void applyRestitution(float subDt);
 };

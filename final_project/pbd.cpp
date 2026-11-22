@@ -20,6 +20,7 @@ void PBDSolver::step(float dt) {
 		}
 
 		// Fix overlaps caused by prediction
+		contacts.clear();
 		solveParticleCollisions();
 		solveGroundCollisions();
 
@@ -29,6 +30,8 @@ void PBDSolver::step(float dt) {
 			if (p.invMass == 0.0f) continue;
 			p.velocity = (p.pos - p.prevPos) / subDt;
 		}
+
+		applyRestitution(subDt);
 	}
 	prevGroundPoint = groundPoint;
 	prevGroundNormal = groundNormal;
@@ -51,6 +54,11 @@ void PBDSolver::solveParticleCollisions() {
 			// Push particles apart along the line between their centroids,
 			// splitting push based on invMass
 			glm::vec3 collisionNorm = delta / dist;
+
+			// Record contact for restitution
+			float vnBefore = glm::dot(a.velocity - b.velocity, collisionNorm);
+			contacts.push_back({ i, j, false, collisionNorm, vnBefore });
+
 			float overlap = minDist - dist;
 			a.pos += collisionNorm * overlap * (a.invMass / invMassSum);
 			b.pos -= collisionNorm * overlap * (b.invMass / invMassSum);
@@ -66,7 +74,39 @@ void PBDSolver::solveGroundCollisions() {
 		// Signed distance from plane to surface of particle
 		float d = glm::dot(p.pos - substepGroundPoint, substepGroundNormal) - p.radius;
 		if (d < 0.0f) {
-			p.pos -= d * groundNormal;
+			float vnBefore = glm::dot(p.velocity, substepGroundNormal);
+			contacts.push_back({ i, 0, true, substepGroundNormal, vnBefore });
+
+			p.pos -= d * substepGroundNormal;
+		}
+	}
+}
+
+void PBDSolver::applyRestitution(float subDt) {
+	// Slow contacts get no bounce
+	float threshold = 2.0f * glm::length(gravity) * subDt;
+
+	for (size_t c = 0; c < contacts.size(); c++) {
+		const Contact& con = contacts[c];
+		if (-con.vnBefore <= threshold) continue;
+
+		if (con.groundCollision) {
+			Particle& p = particles[con.particle1];
+			float vnNow = glm::dot(p.velocity, con.normal);
+			float vnTarget = -groundRestitution * con.vnBefore;
+			p.velocity += con.normal * (vnTarget - vnNow);
+		}
+		else {
+			Particle& a = particles[con.particle1];
+			Particle& b = particles[con.particle2];
+			float invMassSum = a.invMass + b.invMass;
+			if (invMassSum == 0.0f) continue;
+
+			float vnNow = glm::dot(a.velocity - b.velocity, con.normal);
+			float vnTarget = -particleRestitution * con.vnBefore;
+			float dv = vnTarget - vnNow;
+			a.velocity += con.normal * dv * (a.invMass / invMassSum);
+			b.velocity -= con.normal * dv * (b.invMass / invMassSum);
 		}
 	}
 }

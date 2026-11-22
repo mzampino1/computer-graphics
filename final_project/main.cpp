@@ -119,7 +119,7 @@ int main(int argc, char** argv)
 		// Construct view and projection matrices
 		glm::mat4 view = glm::lookAt(
 			glm::vec3(0.0f, 0.5f, 15.0f),  // Position
-			glm::vec3(0.0f, -2.0f, 0.0f),  // Looking at origin
+			glm::vec3(0.0f, -2.0f, 0.0f),  // Looking at this point
 			glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
 		);
 		glm::mat4 projection = glm::perspective(
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
 			throw std::runtime_error("Shadow shader outputs don't match the sBuffer");
 		}
 
-		const float PHYSICS_DT = 1.0f / 120.0f;
+		const float PHYSICS_DT = 1.0f / 165.0f;
 		float accumulator = 0.0f;
 		Uint64 lastTime = SDL_GetTicksNS();
 
