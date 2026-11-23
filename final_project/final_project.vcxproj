@@ -42,9 +42,11 @@
     <ClInclude Include="ubo.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Drop.txt" />
     <Text Include="Floor.txt" />
     <Text Include="Screen.txt" />
     <Text Include="Sphere.txt" />
+    <Text Include="Straight.txt" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="grassDiffuse.bmp" />

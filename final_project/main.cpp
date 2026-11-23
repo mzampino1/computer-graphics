@@ -30,6 +30,11 @@ struct RenderObject {
 	glm::mat4 model;
 };
 
+struct TrackPiece {
+	Mesh* mesh;
+	glm::mat4 end;   // transform from this piece's start to its end (OpenGL coords)
+};
+
 int main(int argc, char** argv)
 {
 	//Window is created dynamically, so we use a window pointer
@@ -92,11 +97,25 @@ int main(int argc, char** argv)
 		// Load meshes, textures, and shaders
 		Mesh sphere("Sphere.txt", { "marbleDiffuse.bmp", "marbleNorm.bmp" });
 		Mesh floor("Floor.txt", texturePaths);
+		Mesh straightMesh("Straight.txt", texturePaths);
+		Mesh dropMesh("Drop.txt", texturePaths);
 
 		float floorAngle = 0.0f;
 		std::vector<RenderObject> scene = {
 			{ &floor, glm::mat4(1.0f) }
 		};
+
+		TrackPiece straight{ &straightMesh, glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)) };
+		TrackPiece drop{ &dropMesh,     glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, -0.75f, 0.0f)) };
+
+		std::vector<TrackPiece> course = { straight, drop, straight, drop, straight };
+
+		// Place pieces end to end, each starting where the previous one ended
+		glm::mat4 cursor = glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 1.0f, 0.0f));
+		for (size_t i = 0; i < course.size(); i++) {
+			scene.push_back({ course[i].mesh, cursor });
+			cursor = cursor * course[i].end;
+		}
 
 		// Set up PBD demo (marble on ramp)
 		PBDSolver solver;

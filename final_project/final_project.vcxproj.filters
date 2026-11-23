@@ -81,6 +81,12 @@
     <Text Include="Sphere.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="Straight.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="Drop.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <Image Include="grassNorm.bmp">

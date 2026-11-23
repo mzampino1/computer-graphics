@@ -4,25 +4,34 @@ import bpy
 
 def write_some_data(context, filepath, use_some_setting):
     print("running write_some_data...")
+    obj = context.active_object
+    obj_eval = obj.evaluated_get(context.evaluated_depsgraph_get())
+    mesh = obj_eval.to_mesh()            # modifiers applied
+    mesh.transform(obj.matrix_world)     # include location / rotation / scale
+    mesh.calc_loop_triangles()
+
+    # Per-corner normals so sharp edges stay sharp
+    normals = [cn.vector for cn in mesh.corner_normals]
+
     f = open(filepath, "w", encoding='utf-8')
-    context.active_object.data.calc_loop_triangles()
     
-    f.write(str(len(context.active_object.data.loop_triangles)*3) + '\n')
-    for triangle in context.active_object.data.loop_triangles:
+    f.write(str(len(mesh.loop_triangles)*3) + '\n')
+    for triangle in mesh.loop_triangles:
         for vertex_index in triangle.vertices:
-            vertex = context.active_object.data.vertices[vertex_index]
+            vertex = mesh.vertices[vertex_index]
             f.write(str(float(vertex.co.x)) + ' ' + str(float(vertex.co.z)) + ' ' + str(float(-vertex.co.y))+ '\n')
-    for triangle in context.active_object.data.loop_triangles:
-        for vertex_index in triangle.vertices:
-            vertex = context.active_object.data.vertices[vertex_index]
-            f.write(str(float(vertex.normal.x)) + ' ' + str(float(vertex.normal.z)) + ' ' + str(float(-vertex.normal.y)) + '\n')
-        
-    for triangle in context.active_object.data.loop_triangles:
+    for triangle in mesh.loop_triangles:
         for loop_index in triangle.loops:
-            data_element = context.active_object.data.uv_layers[0].data[loop_index]
+            n = normals[loop_index]
+            f.write(str(float(n.x)) + ' ' + str(float(n.z)) + ' ' + str(float(-n.y)) + '\n')
+        
+    for triangle in mesh.loop_triangles:
+        for loop_index in triangle.loops:
+            data_element = mesh.uv_layers[0].data[loop_index]
             f.write(str(float(data_element.uv.x)) + ' ' + str(float(1.0 - data_element.uv.y)) + '\n')
         
     f.close()
+    obj_eval.to_mesh_clear()
 
     return {'FINISHED'}
 
