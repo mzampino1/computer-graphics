@@ -35,6 +35,7 @@ void PBDSolver::step(float dt) {
 		}
 
 		applyRestitution(subDt);
+		updateRotation(subDt);
 	}
 	prevGroundPoint = groundPoint;
 	prevGroundNormal = groundNormal;
@@ -237,4 +238,33 @@ void PBDSolver::solveTriangleCollisions() {
 			}
 		}
 	}	
+}
+
+void PBDSolver::updateRotation(float subDt) {
+	// Average surface normal each marble is touching this substep (track or ground)
+	std::vector<glm::vec3> contactNormal(particles.size(), glm::vec3(0.0f));
+	for (size_t c = 0; c < contacts.size(); c++) {
+		if (contacts[c].staticCollision) {
+			contactNormal[contacts[c].particle1] += contacts[c].normal;
+		}
+	}
+
+	for (size_t i = 0; i < particles.size(); i++) {
+		Particle& p = particles[i];
+		if (p.invMass == 0.0f) continue;
+
+		// Touching a surface: spin to match rolling without slipping
+		if (glm::length(contactNormal[i]) > 1e-6f) {
+			glm::vec3 n = glm::normalize(contactNormal[i]);
+			glm::vec3 vAlongSurface = p.velocity - n * glm::dot(p.velocity, n);
+			p.angularVelocity = glm::cross(n, vAlongSurface) / p.radius;
+		}
+
+		// Turn the orientation by this substep's spin
+		float spinRate = glm::length(p.angularVelocity);
+		if (spinRate > 1e-6f) {
+			glm::vec3 axis = p.angularVelocity / spinRate;
+			p.orientation = glm::normalize(glm::angleAxis(spinRate * subDt, axis) * p.orientation);
+		}
+	}
 }

@@ -5,10 +5,13 @@
 #include <map>
 #include <tuple>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 struct Particle {
 	glm::vec3 pos, prevPos, velocity;
 	float radius, invMass;
+	glm::quat orientation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f); // current rotation
+	glm::vec3 angularVelocity = glm::vec3(0.0f);
 };
 
 struct Triangle {
@@ -63,4 +66,6 @@ private:
 	std::map<std::tuple<int, int, int>, std::vector<int>> grid;
 
 	void applyRestitution(float subDt);
+
+	void updateRotation(float subDt);
 };

@@ -90,18 +90,22 @@ int main(int argc, char** argv)
 	// GL_DestroyContext
 	{
 		// Make array of texture file paths
-		std::vector<std::string> texturePaths = {
+		std::vector<std::string> texturePaths1 = {
 			"grassDiffuse.bmp",
 			"grassNorm.bmp"
 		};
+		std::vector<std::string> texturePaths2 = {
+			"marbleDiffuse.bmp",
+			"marbleNorm.bmp"
+		};
 
 		// Load meshes, textures, and shaders
-		Mesh sphere("Sphere.txt", { "marbleDiffuse.bmp", "marbleNorm.bmp" });
-		Mesh floor("Floor.txt", texturePaths);
-		Mesh straightMesh("Straight.txt", texturePaths);
-		Mesh dropMesh("Drop.txt", texturePaths);
-		Mesh curveLMesh("CurveL.txt", texturePaths);
-		Mesh curveRMesh("CurveR.txt", texturePaths);
+		Mesh sphere("Sphere.txt", texturePaths1);
+		Mesh floor("Floor.txt", texturePaths1);
+		Mesh straightMesh("Straight.txt", texturePaths2);
+		Mesh dropMesh("Drop.txt", texturePaths2);
+		Mesh curveLMesh("CurveL.txt", texturePaths2);
+		Mesh curveRMesh("CurveR.txt", texturePaths2);
 
 		float floorAngle = 0.0f;
 		std::vector<RenderObject> scene = {
@@ -140,10 +144,12 @@ int main(int argc, char** argv)
 		marble.radius = 0.2f;
 		marble.invMass = 1.0f;
 		glm::vec3 spawns[] = {
-			glm::vec3(-6.7f, 4.4f, 4.75f), glm::vec3(-6.7f, 4.4f, 5.25f),
+			glm::vec3(-6.7f, 4.5f, 4.75f), glm::vec3(-6.7f, 4.5f, 5.25f),
+			glm::vec3(-6.2f, 4.5f, 4.75f), glm::vec3(-6.2f, 4.5f, 5.25f),
+			glm::vec3(-6.7f, 4.9f, 4.75f), glm::vec3(-6.7f, 4.9f, 5.25f),
 			glm::vec3(-6.2f, 4.9f, 4.75f), glm::vec3(-6.2f, 4.9f, 5.25f)
 		};
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 8; i++) {
 			marble.pos = marble.prevPos = spawns[i];
 			solver.particles.push_back(marble);
 		}
@@ -159,7 +165,7 @@ int main(int argc, char** argv)
 
 		// Construct view and projection matrices
 		glm::mat4 view = glm::lookAt(
-			glm::vec3(5.0f, 12.0f, 13.0f),   // Position
+			glm::vec3(3.95f, 10.3f, 10.9f),   // Position
 			glm::vec3(-2.0f, 0.5f, -1.0f),    // Looking at this point
 			glm::vec3(0.0f, 1.0f, 0.0f)     // Up vector
 		);
@@ -248,6 +254,7 @@ int main(int argc, char** argv)
 			for (size_t i = 0; i < solver.particles.size(); i++) {
 				const Particle& p = solver.particles[i];
 				glm::mat4 model = glm::translate(glm::mat4(1.0f), p.pos);
+				model = model * glm::mat4_cast(p.orientation);
 				model = glm::scale(model, glm::vec3(p.radius));
 				frameScene.push_back({ &sphere, model });
 			}
