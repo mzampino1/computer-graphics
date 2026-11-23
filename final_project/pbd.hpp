@@ -1,11 +1,18 @@
 #pragma once
 
 #include <vector>
+#include <string>
 #include <glm/glm.hpp>
 
 struct Particle {
 	glm::vec3 pos, prevPos, velocity;
 	float radius, invMass;
+};
+
+struct Triangle {
+	glm::vec3 a, b, c; // world space
+	glm::vec3 center;
+	float boundRadius;
 };
 
 class PBDSolver {
@@ -26,9 +33,14 @@ public:
 	float particleRestitution = 0.7f;   // marble, marble
 	float groundRestitution = 0.3f;   // marble, ground
 
+	std::vector<Triangle> triangles;
+
+	// Load a mesh's triangles from a .txt file
+	bool addTriangleMesh(const std::string& path, const glm::mat4& model);
 	void step(float dt);
 private:
 	void solveParticleCollisions();
+	void solveTriangleCollisions();
 	void solveGroundCollisions();
 	// Ground state for the current substep, interpolated between
 	// the previous frame and the current frame
@@ -37,7 +49,7 @@ private:
 	// Collision recorded during a substep, used to add bounce afterward
 	struct Contact {
 		size_t particle1, particle2;
-		bool groundCollision; // true when particle1 hits the ground
+		bool staticCollision; // true when particle1 hits ground or track
 		glm::vec3 normal;     // points from particle2 (or the ground) toward particle1
 		float vnBefore;       // speed along normal before collision solved (< 0 = approaching)
 	};

@@ -32,6 +32,7 @@ struct RenderObject {
 
 struct TrackPiece {
 	Mesh* mesh;
+	std::string file;
 	glm::mat4 end;   // transform from this piece's start to its end (OpenGL coords)
 };
 
@@ -105,25 +106,29 @@ int main(int argc, char** argv)
 			{ &floor, glm::mat4(1.0f) }
 		};
 
-		TrackPiece straight{ &straightMesh, glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)) };
-		TrackPiece drop{ &dropMesh,     glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, -0.75f, 0.0f)) };
+		TrackPiece straight{ &straightMesh, "Straight.txt", glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f))};
+		TrackPiece drop{ &dropMesh, "Drop.txt", glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, -0.75f, 0.0f))};
 
 		std::vector<TrackPiece> course = { straight, drop, straight, drop, straight };
+
+		PBDSolver solver;
 
 		// Place pieces end to end, each starting where the previous one ended
 		glm::mat4 cursor = glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 1.0f, 0.0f));
 		for (size_t i = 0; i < course.size(); i++) {
 			scene.push_back({ course[i].mesh, cursor });
+			solver.addTriangleMesh(course[i].file, cursor);
 			cursor = cursor * course[i].end;
 		}
 
-		// Set up PBD demo (marble on ramp)
-		PBDSolver solver;
+		// Set up PBD
 		Particle marble;
-		marble.pos = marble.prevPos = glm::vec3(2.0f, 0.0f, 0.0f);
+		marble.pos = marble.prevPos = glm::vec3(-3.5f, 1.5f, -0.2f);
 		marble.velocity = glm::vec3(0.0f);
-		marble.radius = 1.0f;
+		marble.radius = 0.2f;
 		marble.invMass = 1.0f;
+		solver.particles.push_back(marble);
+		marble.pos = marble.prevPos = glm::vec3(-3.5f, 2.2f, 0.2f);
 		solver.particles.push_back(marble);
 
 		std::vector<Particle> initialParticles = solver.particles; // snapshot for reset
@@ -137,9 +142,9 @@ int main(int argc, char** argv)
 
 		// Construct view and projection matrices
 		glm::mat4 view = glm::lookAt(
-			glm::vec3(0.0f, 0.5f, 15.0f),  // Position
-			glm::vec3(0.0f, -2.0f, 0.0f),  // Looking at this point
-			glm::vec3(0.0f, 1.0f, 0.0f)    // Up vector
+			glm::vec3(-2.0f, 5.0f, 8.0f),   // Position
+			glm::vec3(1.5f, 0.0f, 0.0f),    // Looking at this point
+			glm::vec3(0.0f, 1.0f, 0.0f)     // Up vector
 		);
 		glm::mat4 projection = glm::perspective(
 			glm::radians(45.0f),

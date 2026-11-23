@@ -1,5 +1,7 @@
 #include "pbd.hpp"
 #include <cmath>
+#include <fstream>
+#include <iostream>
 
 void PBDSolver::step(float dt) {
 	float subDt = dt / substeps;
@@ -23,6 +25,7 @@ void PBDSolver::step(float dt) {
 		contacts.clear();
 		solveParticleCollisions();
 		solveGroundCollisions();
+		solveTriangleCollisions();
 
 		// Update velocity based on how far each particle moved
 		for (size_t i = 0; i < particles.size(); i++) {
@@ -49,7 +52,7 @@ void PBDSolver::solveParticleCollisions() {
 			glm::vec3 delta = a.pos - b.pos;
 			float dist = glm::length(delta);
 			float minDist = a.radius + b.radius;
-			if (dist >= minDist || dist < 1e-6f) continue; // not touching, or overlapping
+			if (dist >= minDist || dist < 1e-6f) continue; // not touching, or exactly on top of each other
 
 			// Push particles apart along the line between their centroids,
 			// splitting push based on invMass
@@ -90,7 +93,7 @@ void PBDSolver::applyRestitution(float subDt) {
 		const Contact& con = contacts[c];
 		if (-con.vnBefore <= threshold) continue;
 
-		if (con.groundCollision) {
+		if (con.staticCollision) {
 			Particle& p = particles[con.particle1];
 			float vnNow = glm::dot(p.velocity, con.normal);
 			float vnTarget = -groundRestitution * con.vnBefore;
@@ -107,6 +110,103 @@ void PBDSolver::applyRestitution(float subDt) {
 			float dv = vnTarget - vnNow;
 			a.velocity += con.normal * dv * (a.invMass / invMassSum);
 			b.velocity -= con.normal * dv * (b.invMass / invMassSum);
+		}
+	}
+}
+
+bool PBDSolver::addTriangleMesh(const std::string& path, const glm::mat4& model) {
+	std::ifstream file(path);
+	if (!file) {
+		std::cerr << "Failed to open collision mesh: " << path << "\n";
+		return false;
+	}
+
+	int count;
+	file >> count;
+	std::vector<glm::vec3> pos(count);
+	for (int i = 0; i < count; i++) {
+		float x, y, z;
+		file >> x >> y >> z;
+		pos[i] = glm::vec3(model * glm::vec4(x, y, z, 1.0f));
+	}
+
+	for (int i = 0; i + 2 < count; i += 3) {
+		Triangle t;
+		t.a = pos[i]; t.b = pos[i + 1]; t.c = pos[i + 2];
+
+		// Skip zero-area triangles
+		if (glm::length(glm::cross(t.b - t.a, t.c - t.a)) < 1e-8f) continue;
+
+		t.center = (t.a + t.b + t.c) / 3.0f;
+		t.boundRadius = glm::max(glm::length(t.a - t.center),
+			glm::max(glm::length(t.b - t.center), glm::length(t.c - t.center)));
+		triangles.push_back(t);
+	}
+	return true;
+}
+
+static glm::vec3 closestPointOnTriangle(const glm::vec3& p, const glm::vec3& a,
+	const glm::vec3& b, const glm::vec3& c) {
+	glm::vec3 ab = b - a, ac = c - a, ap = p - a;
+	float d1 = glm::dot(ab, ap), d2 = glm::dot(ac, ap);
+	if (d1 <= 0.0f && d2 <= 0.0f) return a;                       // corner a
+
+	glm::vec3 bp = p - b;
+	float d3 = glm::dot(ab, bp), d4 = glm::dot(ac, bp);
+	if (d3 >= 0.0f && d4 <= d3) return b;                         // corner b
+
+	float vc = d1 * d4 - d3 * d2;
+	if (vc <= 0.0f && d1 >= 0.0f && d3 <= 0.0f)                  // edge ab
+		return a + ab * (d1 / (d1 - d3));
+
+	glm::vec3 cp = p - c;
+	float d5 = glm::dot(ab, cp), d6 = glm::dot(ac, cp);
+	if (d6 >= 0.0f && d5 <= d6) return c;                         // corner c
+
+	float vb = d5 * d2 - d1 * d6;
+	if (vb <= 0.0f && d2 >= 0.0f && d6 <= 0.0f)                   // edge ac
+		return a + ac * (d2 / (d2 - d6));
+
+	float va = d3 * d6 - d5 * d4;
+	if (va <= 0.0f && (d4 - d3) >= 0.0f && (d5 - d6) >= 0.0f)     // edge bc
+		return b + (c - b) * ((d4 - d3) / ((d4 - d3) + (d5 - d6)));
+
+	float denom = 1.0f / (va + vb + vc);                          // inside the face
+	return a + ab * (vb * denom) + ac * (vc * denom);
+}
+
+void PBDSolver::solveTriangleCollisions() {
+	for (size_t i = 0; i < particles.size(); i++) {
+		Particle& p = particles[i];
+		if (p.invMass == 0.0f) continue;
+
+		for (size_t t = 0; t < triangles.size(); t++) {
+			const Triangle& tri = triangles[t];
+
+			// marble can't reach this triangle
+			float reach = tri.boundRadius + p.radius;
+			glm::vec3 toCenter = p.pos - tri.center;
+			if (glm::dot(toCenter, toCenter) > reach * reach) continue;
+
+			glm::vec3 closest = closestPointOnTriangle(p.pos, tri.a, tri.b, tri.c);
+			glm::vec3 delta = p.pos - closest;
+			float dist = glm::length(delta);
+			if (dist >= p.radius) continue; // not touching
+
+			// Push away from the closest point
+			glm::vec3 n = (dist > 1e-6f) ? delta / dist
+				: glm::normalize(glm::cross(tri.b - tri.a, tri.c - tri.a));
+
+			// Record contact for restitution (treated like the ground)
+			Contact con;
+			con.particle1 = i;
+			con.particle2 = 0;
+			con.staticCollision = true;
+			con.normal = n;
+			con.vnBefore = glm::dot(p.velocity, n);
+			contacts.push_back(con);
+
+			p.pos += n * (p.radius - dist);
 		}
 	}
 }
