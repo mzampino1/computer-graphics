@@ -209,7 +209,7 @@ int main(int argc, char** argv)
 		if (!geometry.canDrawTo(gBuffer)) {
 			throw std::runtime_error("Geometry shader outputs don't match the gBuffer");
 		}
-		Framebuffer sBuffer{ 1, 1024, 1024 };
+		Framebuffer sBuffer{ 1, 2048, 2048 };
 		if (!shadow.canDrawTo(sBuffer)) {
 			throw std::runtime_error("Shadow shader outputs don't match the sBuffer");
 		}
