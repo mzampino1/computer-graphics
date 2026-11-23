@@ -67,6 +67,7 @@ int main(int argc, char** argv)
 		return 2;
 	}
 	context = SDL_GL_CreateContext(window);
+	SDL_GL_SetSwapInterval(1);
 #ifdef __APPLE__
 	//Not much going on, but the else below is for more than one OS :)
 #else
@@ -209,7 +210,7 @@ int main(int argc, char** argv)
 		if (!geometry.canDrawTo(gBuffer)) {
 			throw std::runtime_error("Geometry shader outputs don't match the gBuffer");
 		}
-		Framebuffer sBuffer{ 1, 2048, 2048 };
+		Framebuffer sBuffer{ 1, 1024, 1024 };
 		if (!shadow.canDrawTo(sBuffer)) {
 			throw std::runtime_error("Shadow shader outputs don't match the sBuffer");
 		}
