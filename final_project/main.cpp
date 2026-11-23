@@ -100,6 +100,8 @@ int main(int argc, char** argv)
 		Mesh floor("Floor.txt", texturePaths);
 		Mesh straightMesh("Straight.txt", texturePaths);
 		Mesh dropMesh("Drop.txt", texturePaths);
+		Mesh curveLMesh("CurveL.txt", texturePaths);
+		Mesh curveRMesh("CurveR.txt", texturePaths);
 
 		float floorAngle = 0.0f;
 		std::vector<RenderObject> scene = {
@@ -108,13 +110,23 @@ int main(int argc, char** argv)
 
 		TrackPiece straight{ &straightMesh, "Straight.txt", glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f))};
 		TrackPiece drop{ &dropMesh, "Drop.txt", glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, -0.75f, 0.0f))};
+		TrackPiece curveL{ &curveLMesh, "CurveL.txt",
+			glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.5f, 0.0f, -1.5f)), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) };
+		TrackPiece curveR{ &curveRMesh, "CurveR.txt",
+			glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.5f, 0.0f, 1.5f)), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) };
 
-		std::vector<TrackPiece> course = { straight, drop, straight, drop, straight };
+		std::vector<TrackPiece> course = {
+			drop, drop, straight, curveL,
+			drop, straight, curveL,
+			drop, straight, curveR,
+			drop, curveR,
+			drop, straight, drop, straight
+		};
 
 		PBDSolver solver;
 
 		// Place pieces end to end, each starting where the previous one ended
-		glm::mat4 cursor = glm::translate(glm::mat4(1.0f), glm::vec3(-4.0f, 1.0f, 0.0f));
+		glm::mat4 cursor = glm::translate(glm::mat4(1.0f), glm::vec3(-7.0f, 4.0f, 5.0f));
 		for (size_t i = 0; i < course.size(); i++) {
 			scene.push_back({ course[i].mesh, cursor });
 			solver.addTriangleMesh(course[i].file, cursor);
@@ -127,9 +139,14 @@ int main(int argc, char** argv)
 		marble.velocity = glm::vec3(0.0f);
 		marble.radius = 0.2f;
 		marble.invMass = 1.0f;
-		solver.particles.push_back(marble);
-		marble.pos = marble.prevPos = glm::vec3(-3.5f, 2.2f, 0.2f);
-		solver.particles.push_back(marble);
+		glm::vec3 spawns[] = {
+			glm::vec3(-6.7f, 4.4f, 4.75f), glm::vec3(-6.7f, 4.4f, 5.25f),
+			glm::vec3(-6.2f, 4.9f, 4.75f), glm::vec3(-6.2f, 4.9f, 5.25f)
+		};
+		for (int i = 0; i < 4; i++) {
+			marble.pos = marble.prevPos = spawns[i];
+			solver.particles.push_back(marble);
+		}
 
 		std::vector<Particle> initialParticles = solver.particles; // snapshot for reset
 
@@ -142,8 +159,8 @@ int main(int argc, char** argv)
 
 		// Construct view and projection matrices
 		glm::mat4 view = glm::lookAt(
-			glm::vec3(-2.0f, 5.0f, 8.0f),   // Position
-			glm::vec3(1.5f, 0.0f, 0.0f),    // Looking at this point
+			glm::vec3(5.0f, 12.0f, 13.0f),   // Position
+			glm::vec3(-2.0f, 0.5f, -1.0f),    // Looking at this point
 			glm::vec3(0.0f, 1.0f, 0.0f)     // Up vector
 		);
 		glm::mat4 projection = glm::perspective(
@@ -155,15 +172,16 @@ int main(int argc, char** argv)
 
 		// Construct lightView and ortho matrices
 		glm::vec3 lightDir = glm::vec3(1.0f, -1.0f, -1.0f);
+		glm::vec3 lightTarget = glm::vec3(-2.0f, 1.5f, -1.0f);
 		glm::mat4 lightView = glm::lookAt(
-			-5.0f * lightDir,
-			glm::vec3(0.0f, 0.0f, 0.0f),
+			lightTarget - 12.0f * lightDir,
+			lightTarget,
 			glm::vec3(0.0f, 1.0f, 0.0f)
 		);
 		glm::mat4 lightOrtho = glm::ortho(
-			-15.0f, 15.0f,   // left, right
-			-13.0f, 10.0f,   // bottom, top
-			-2.0f, 22.0f    // near, far
+			-9.5f, 9.5f,    // left, right
+			-8.5f, 8.5f,    // bottom, top
+			10.0f, 32.0f    // near, far
 		);
 
 		// Set up uniform buffer objects (UBOs)

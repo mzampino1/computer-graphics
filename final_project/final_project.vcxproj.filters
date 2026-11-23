@@ -87,6 +87,12 @@
     <Text Include="Drop.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="CurveL.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="CurveR.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <Image Include="grassNorm.bmp">

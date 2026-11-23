@@ -42,6 +42,8 @@
     <ClInclude Include="ubo.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="CurveL.txt" />
+    <Text Include="CurveR.txt" />
     <Text Include="Drop.txt" />
     <Text Include="Floor.txt" />
     <Text Include="Screen.txt" />
