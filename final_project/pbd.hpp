@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <string>
+#include <map>
+#include <tuple>
 #include <glm/glm.hpp>
 
 struct Particle {
@@ -54,5 +56,11 @@ private:
 		float vnBefore;       // speed along normal before collision solved (< 0 = approaching)
 	};
 	std::vector<Contact> contacts;
+
+	// Grid of 0.5 m cubes 
+	// Key = cube coordinates (x, y, z), value = triangles in that cube
+	float cellSize = 0.5f;
+	std::map<std::tuple<int, int, int>, std::vector<int>> grid;
+
 	void applyRestitution(float subDt);
 };

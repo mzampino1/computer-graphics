@@ -141,6 +141,22 @@ bool PBDSolver::addTriangleMesh(const std::string& path, const glm::mat4& model)
 		t.boundRadius = glm::max(glm::length(t.a - t.center),
 			glm::max(glm::length(t.b - t.center), glm::length(t.c - t.center)));
 		triangles.push_back(t);
+
+		int index = (int)triangles.size() - 1;
+
+		// Smallest and largest corner of the triangle's bounding box
+		glm::vec3 lo = glm::min(t.a, glm::min(t.b, t.c));
+		glm::vec3 hi = glm::max(t.a, glm::max(t.b, t.c));
+
+		// Which cubes those corners fall in
+		glm::ivec3 cubeLo = glm::ivec3(glm::floor(lo / cellSize));
+		glm::ivec3 cubeHi = glm::ivec3(glm::floor(hi / cellSize));
+
+		// List the triangle in every cube between them
+		for (int x = cubeLo.x; x <= cubeHi.x; x++)
+			for (int y = cubeLo.y; y <= cubeHi.y; y++)
+				for (int z = cubeLo.z; z <= cubeHi.z; z++)
+					grid[{x, y, z}].push_back(index);
 	}
 	return true;
 }
@@ -180,33 +196,45 @@ void PBDSolver::solveTriangleCollisions() {
 		Particle& p = particles[i];
 		if (p.invMass == 0.0f) continue;
 
-		for (size_t t = 0; t < triangles.size(); t++) {
-			const Triangle& tri = triangles[t];
+		glm::ivec3 cubeLo = glm::ivec3(glm::floor((p.pos - p.radius) / cellSize));
+		glm::ivec3 cubeHi = glm::ivec3(glm::floor((p.pos + p.radius) / cellSize));
 
-			// marble can't reach this triangle
-			float reach = tri.boundRadius + p.radius;
-			glm::vec3 toCenter = p.pos - tri.center;
-			if (glm::dot(toCenter, toCenter) > reach * reach) continue;
+		for (int x = cubeLo.x; x <= cubeHi.x; x++)
+		for (int y = cubeLo.y; y <= cubeHi.y; y++)
+		for (int z = cubeLo.z; z <= cubeHi.z; z++) {
+			auto found = grid.find({ x, y, z });
+			if (found == grid.end()) continue;      // nothing in this cube
 
-			glm::vec3 closest = closestPointOnTriangle(p.pos, tri.a, tri.b, tri.c);
-			glm::vec3 delta = p.pos - closest;
-			float dist = glm::length(delta);
-			if (dist >= p.radius) continue; // not touching
+			const std::vector<int>& nearby = found->second;
+			for (size_t k = 0; k < nearby.size(); k++) {
+				int t = nearby[k];
+				const Triangle& tri = triangles[t];
 
-			// Push away from the closest point
-			glm::vec3 n = (dist > 1e-6f) ? delta / dist
-				: glm::normalize(glm::cross(tri.b - tri.a, tri.c - tri.a));
+				// marble can't reach this triangle
+				float reach = tri.boundRadius + p.radius;
+				glm::vec3 toCenter = p.pos - tri.center;
+				if (glm::dot(toCenter, toCenter) > reach * reach) continue;
 
-			// Record contact for restitution (treated like the ground)
-			Contact con;
-			con.particle1 = i;
-			con.particle2 = 0;
-			con.staticCollision = true;
-			con.normal = n;
-			con.vnBefore = glm::dot(p.velocity, n);
-			contacts.push_back(con);
+				glm::vec3 closest = closestPointOnTriangle(p.pos, tri.a, tri.b, tri.c);
+				glm::vec3 delta = p.pos - closest;
+				float dist = glm::length(delta);
+				if (dist >= p.radius) continue; // not touching
 
-			p.pos += n * (p.radius - dist);
+				// Push away from the closest point
+				glm::vec3 n = (dist > 1e-6f) ? delta / dist
+					: glm::normalize(glm::cross(tri.b - tri.a, tri.c - tri.a));
+
+				// Record contact for restitution (treated like the ground)
+				Contact con;
+				con.particle1 = i;
+				con.particle2 = 0;
+				con.staticCollision = true;
+				con.normal = n;
+				con.vnBefore = glm::dot(p.velocity, n);
+				contacts.push_back(con);
+
+				p.pos += n * (p.radius - dist);
+			}
 		}
-	}
+	}	
 }
