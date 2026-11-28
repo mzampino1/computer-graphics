@@ -13,6 +13,10 @@ layout (std140) uniform LightMatrices
 
 uniform vec3 lightDir;
 
+uniform samplerCube skybox;
+uniform mat4 invViewProj;
+uniform vec3 cameraPos;
+
 smooth in vec2 uvCoords;
 
 out vec4 fragColor;
@@ -24,9 +28,11 @@ void main()
 	vec3 norm     = normalize(texture(gbuff_normal, uvCoords).xyz);
 	vec3 albedo   = texture(color, uvCoords).xyz;
 
-	// Do not light pixel if there is no geometry
+	// Use skybox if there is no geometry
 	if (texture(position, uvCoords).w == 0.0) {
-		fragColor = vec4(albedo, 1.0);
+		vec4 farPoint = invViewProj * vec4(uvCoords * 2.0 - 1.0, 1.0, 1.0);
+		vec3 viewDir = normalize(farPoint.xyz / farPoint.w - cameraPos);
+		fragColor = vec4(texture(skybox, viewDir).rgb, 1.0);
 		return;
 	}
 
@@ -56,5 +62,17 @@ void main()
 	// Ambient keeps shadowed areas from being black
     vec3 ambient = 0.25 * albedo;
 
-    fragColor = vec4(ambient + shadow * diffuse, 1.0);
+    vec3 litColor = ambient + shadow * diffuse;
+
+	// Glassy marbles: Fresnel-weighted sky reflection with a sun highlight
+	float reflectivity = texture(gbuff_normal, uvCoords).w;
+	if (reflectivity > 0.0) {
+		vec3 V = normalize(worldPos - cameraPos);
+		vec3 R = reflect(V, norm);
+		float fresnel = 0.3 + 0.7 * pow(1.0 - clamp(dot(-V, norm), 0.0, 1.0), 3.0);
+		float spec = pow(max(dot(R, normalize(-lightDir)), 0.0), 48.0) * shadow * 1.5;
+		litColor = mix(litColor, texture(skybox, R).rgb, fresnel * reflectivity) + spec * reflectivity;
+	}
+
+	fragColor = vec4(litColor, 1.0);
 }

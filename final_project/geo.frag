@@ -9,10 +9,11 @@ layout (location = 2) out vec4 position;
 
 uniform sampler2D albedo;
 uniform sampler2D normal;
+uniform float reflectivity;
 
 void main()
 {
 	color = texture(albedo, uvCoords);
-	gbuff_normal = vec4(normalize(TBN * (texture(normal, uvCoords).xyz * 2.0f - 1.0f)), 1.0);
+	gbuff_normal = vec4(normalize(TBN * (texture(normal, uvCoords).xyz * 2.0f - 1.0f)), reflectivity);
 	position = vec4(global_pos, 1.0);
 }

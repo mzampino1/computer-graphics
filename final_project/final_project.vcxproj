@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="cubemap.cpp" />
     <ClCompile Include="framebuffer.cpp" />
     <ClCompile Include="glew.c" />
     <ClCompile Include="main.cpp" />
@@ -35,6 +36,7 @@
     <None Include="shadow.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cubemap.hpp" />
     <ClInclude Include="framebuffer.hpp" />
     <ClInclude Include="mesh.hpp" />
     <ClInclude Include="pbd.hpp" />
@@ -57,6 +59,12 @@
     <Image Include="marbleGreen.bmp" />
     <Image Include="marbleRed.bmp" />
     <Image Include="marbleYellow.bmp" />
+    <Image Include="skybox\nx.bmp" />
+    <Image Include="skybox\ny.bmp" />
+    <Image Include="skybox\nz.bmp" />
+    <Image Include="skybox\px.bmp" />
+    <Image Include="skybox\py.bmp" />
+    <Image Include="skybox\pz.bmp" />
     <Image Include="trackDiffuse.bmp" />
     <Image Include="marbleNorm.bmp" />
   </ItemGroup>

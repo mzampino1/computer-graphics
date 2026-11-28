@@ -3,6 +3,7 @@
 #include "framebuffer.hpp"
 #include "ubo.hpp"
 #include "pbd.hpp"
+#include "cubemap.hpp"
 
 #include <iostream>
 #include <vector>
@@ -28,6 +29,7 @@ constexpr int RESY = 1080;
 struct RenderObject {
 	Mesh* mesh;
 	glm::mat4 model;
+	float reflectivity = 0.0f;
 };
 
 struct TrackPiece {
@@ -84,6 +86,7 @@ int main(int argc, char** argv)
 #endif
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	glClearDepth(1.0f);
 	glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
@@ -174,10 +177,13 @@ int main(int argc, char** argv)
 		Shader shadow("shadow.vert", "shadow.frag", {});
 		std::vector<std::string> texture_names = { "color", "gbuff_normal", "position", "shadowMap" };
 		Shader lighting("light.vert", "light.frag", texture_names);
+		Cubemap skybox({ "skybox/px.bmp", "skybox/nx.bmp", "skybox/py.bmp",
+				 "skybox/ny.bmp", "skybox/pz.bmp", "skybox/nz.bmp" });
+		glm::vec3 cameraPos = glm::vec3(3.95f, 10.3f, 10.9f);
 
 		// Construct view and projection matrices
 		glm::mat4 view = glm::lookAt(
-			glm::vec3(3.95f, 10.3f, 10.9f),   // Position
+			cameraPos,   // Position
 			glm::vec3(-2.0f, 0.5f, -1.0f),    // Looking at this point
 			glm::vec3(0.0f, 1.0f, 0.0f)     // Up vector
 		);
@@ -188,18 +194,18 @@ int main(int argc, char** argv)
 			200.0f
 		);
 
-		// Construct lightView and ortho matrices
-		glm::vec3 lightDir = glm::vec3(1.0f, -1.0f, -1.0f);
+		// Construct light matrices based on skybox's sun
+		glm::vec3 lightDir = glm::vec3(0.44f, -0.4f, -0.8f);
 		glm::vec3 lightTarget = glm::vec3(-2.0f, 1.5f, -1.0f);
 		glm::mat4 lightView = glm::lookAt(
-			lightTarget - 12.0f * lightDir,
+			lightTarget - 20.0f * lightDir,
 			lightTarget,
 			glm::vec3(0.0f, 1.0f, 0.0f)
 		);
 		glm::mat4 lightOrtho = glm::ortho(
-			-9.5f, 9.5f,    // left, right
-			-8.5f, 8.5f,    // bottom, top
-			10.0f, 32.0f    // near, far
+			-9.0f, 9.0f,    // left, right
+			-7.5f, 7.0f,    // bottom, top
+			9.5f, 31.0f     // near, far
 		);
 
 		// Set up uniform buffer objects (UBOs)
@@ -268,7 +274,7 @@ int main(int argc, char** argv)
 				glm::mat4 model = glm::translate(glm::mat4(1.0f), p.pos);
 				model = model * glm::mat4_cast(p.orientation);
 				model = glm::scale(model, glm::vec3(p.radius));
-				frameScene.push_back({ marbleMeshes[i % marbleMeshes.size()], model });
+				frameScene.push_back({ marbleMeshes[i % marbleMeshes.size()], model, 1.0f });
 			}
 
 			SDL_GetMouseState(&mouseX, &mouseY);
@@ -317,6 +323,7 @@ int main(int argc, char** argv)
 			glEnable(GL_DEPTH_TEST);
 			// Render meshes into GBuffer textures
 			for (size_t i = 0; i < frameScene.size(); i++) {
+				geometry.setFloat("reflectivity", frameScene[i].reflectivity);
 				geometry.draw(*frameScene[i].mesh, frameScene[i].model);
 			}
 
@@ -341,6 +348,13 @@ int main(int argc, char** argv)
 			// Fetch GBuffer texture handles from Framebuffer class
 			std::vector<GLuint> textures = gBuffer.getTextures();
 			textures.push_back(sBuffer.getTextures()[0]);
+
+			// Send sky and camera to lighting pass
+			lighting.setMat4("invViewProj", glm::inverse(projection* view));
+			lighting.setVec3Array("cameraPos", 1, glm::value_ptr(cameraPos));
+			glActiveTexture(GL_TEXTURE4);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, skybox.getTexture());
+			lighting.setInt("skybox", 4);
 
 			// Draw screen quad
 			lighting.drawScreen(screen, textures);

@@ -116,6 +116,22 @@ void Shader::setInt(const std::string& name, int value) const {
 	}
 }
 
+void Shader::setFloat(const std::string& name, float value) const {
+	this->use();
+	GLint loc = glGetUniformLocation(this->program, name.c_str());
+	if (loc != -1) {
+		glUniform1f(loc, value);
+	}
+}
+
+void Shader::setMat4(const std::string& name, const glm::mat4& value) const {
+	this->use();
+	GLint loc = glGetUniformLocation(this->program, name.c_str());
+	if (loc != -1) {
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+	}
+}
+
 void Shader::use() const {
 	glUseProgram(this->program);
 }

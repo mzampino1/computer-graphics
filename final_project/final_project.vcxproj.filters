@@ -33,6 +33,9 @@
     <ClCompile Include="pbd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="cubemap.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="geo.vert">
@@ -68,6 +71,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pbd.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cubemap.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -117,6 +123,24 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="marbleYellow.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="skybox\nx.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="skybox\ny.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="skybox\nz.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="skybox\px.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="skybox\py.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="skybox\pz.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
