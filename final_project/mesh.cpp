@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <cmath>
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
@@ -61,17 +62,26 @@ Mesh::Mesh(const std::string& filepath, const std::vector<std::string>& bitmap_p
 		//edges
 		glm::vec3 ab = b - a, ac = c - a;
 		glm::vec2 uAB = uB - uA, uAC = uC - uA;
-		//Inverse determinant
-		float invD = 1.0f / (uAB.x * uAC.y - uAC.x * uAB.y);
-		for (int j = 0; j < 3; ++j)//store three times for one triangle, i.e., vertices
+
+		glm::vec3 T, B;
+		float det = uAB.x * uAC.y - uAC.x * uAB.y;
+		if (std::abs(det) > 1e-10f) {
+			// Normal case: tangent/bitangent from the UV layout
+			float invD = 1.0f / det;
+			T = invD * (uAC.y * ab - uAB.y * ac);
+			B = invD * (-uAC.x * ab + uAB.x * ac);
+		}
+		else {
+			// Zero-area UVs: use any tangent lying flat on the triangle
+			glm::vec3 n = glm::normalize(glm::cross(ab, ac));
+			glm::vec3 helper = (std::abs(n.y) < 0.99f) ? glm::vec3(0.0f, 1.0f, 0.0f) : glm::vec3(1.0f, 0.0f, 0.0f);
+			T = glm::normalize(glm::cross(helper, n));
+			B = glm::cross(n, T);
+		}
+		for (int j = 0; j < 3; j++)
 		{
-			//You can save some compute -- store vars outside the loop :)
-			tangents.push_back(invD * (uAC.y * ab.x - uAB.y * ac.x));
-			tangents.push_back(invD * (uAC.y * ab.y - uAB.y * ac.y));
-			tangents.push_back(invD * (uAC.y * ab.z - uAB.y * ac.z));
-			bitangents.push_back(invD * (-uAC.x * ab.x + uAB.x * ac.x));
-			bitangents.push_back(invD * (-uAC.x * ab.y + uAB.x * ac.y));
-			bitangents.push_back(invD * (-uAC.x * ab.z + uAB.x * ac.z));
+			tangents.push_back(T.x);   tangents.push_back(T.y);   tangents.push_back(T.z);
+			bitangents.push_back(B.x); bitangents.push_back(B.y); bitangents.push_back(B.z);
 		}
 	}
 	buff.insert(buff.end(), tangents.begin(), tangents.end());
