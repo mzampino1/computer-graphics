@@ -38,6 +38,8 @@ public:
 	float particleRestitution = 0.7f;   // marble, marble
 	float groundRestitution = 0.3f;   // marble, ground
 
+	float rollingResistance = 0.05f; // fraction of speed lost per second
+
 	std::vector<Triangle> triangles;
 
 	// Load a mesh's triangles from a .txt file

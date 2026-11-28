@@ -257,6 +257,11 @@ void PBDSolver::updateRotation(float subDt) {
 		if (glm::length(contactNormal[i]) > 1e-6f) {
 			glm::vec3 n = glm::normalize(contactNormal[i]);
 			glm::vec3 vAlongSurface = p.velocity - n * glm::dot(p.velocity, n);
+
+			// Rolling resistance: lose speed along the surface each substep
+			p.velocity -= vAlongSurface * (rollingResistance * subDt);
+			vAlongSurface *= 1.0f - rollingResistance * subDt;
+
 			p.angularVelocity = glm::cross(n, vAlongSurface) / p.radius;
 		}
 
