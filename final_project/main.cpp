@@ -258,7 +258,7 @@ int main(int argc, char** argv)
 
 				glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
 				floorModel = glm::rotate(floorModel, glm::radians(floorAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-				scene[0].model = glm::scale(floorModel, glm::vec3(10.0f, 1.0f, 10.0f));
+				scene[0].model = glm::scale(floorModel, glm::vec3(60.0f, 1.0f, 60.0f));
 
 				solver.groundPoint = glm::vec3(floorModel * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
 				solver.groundNormal = glm::normalize(glm::vec3(floorModel * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f)));
