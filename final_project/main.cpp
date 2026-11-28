@@ -116,9 +116,9 @@ int main(int argc, char** argv)
 		Mesh curveLMesh("CurveL.txt", texturePaths2);
 		Mesh curveRMesh("CurveR.txt", texturePaths2);
 
-		float floorAngle = 0.0f;
+		glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
 		std::vector<RenderObject> scene = {
-			{ &floor, glm::mat4(1.0f) }
+			{ &floor, glm::scale(floorModel, glm::vec3(60.0f, 1.0f, 60.0f)) }
 		};
 
 		TrackPiece straight{ &straightMesh, "Straight.txt", glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f))};
@@ -249,20 +249,6 @@ int main(int argc, char** argv)
 			accumulator += std::min(frameTime, 0.25f);
 
 			while (accumulator >= PHYSICS_DT) {
-				// Floor tilt (hold A / D)
-				const bool* keys = SDL_GetKeyboardState(NULL);
-				const float tiltSpeed = 15.0f; // degrees per second
-				if (keys[SDL_SCANCODE_A]) floorAngle += tiltSpeed * PHYSICS_DT;
-				if (keys[SDL_SCANCODE_D]) floorAngle -= tiltSpeed * PHYSICS_DT;
-				floorAngle = glm::clamp(floorAngle, -45.0f, 45.0f);
-
-				glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
-				floorModel = glm::rotate(floorModel, glm::radians(floorAngle), glm::vec3(0.0f, 0.0f, 1.0f));
-				scene[0].model = glm::scale(floorModel, glm::vec3(60.0f, 1.0f, 60.0f));
-
-				solver.groundPoint = glm::vec3(floorModel * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-				solver.groundNormal = glm::normalize(glm::vec3(floorModel * glm::vec4(0.0f, 1.0f, 0.0f, 0.0f)));
-
 				solver.step(PHYSICS_DT);
 				accumulator -= PHYSICS_DT;
 			}
