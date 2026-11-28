@@ -96,12 +96,17 @@ int main(int argc, char** argv)
 			"grassNorm.bmp"
 		};
 		std::vector<std::string> texturePaths2 = {
-			"marbleDiffuse.bmp",
+			"trackDiffuse.bmp",
 			"marbleNorm.bmp"
 		};
 
 		// Load meshes, textures, and shaders
-		Mesh sphere("Sphere.txt", texturePaths1);
+		Mesh marbleRed("Sphere.txt", { "marbleRed.bmp", "marbleNorm.bmp" });
+		Mesh marbleBlue("Sphere.txt", { "marbleBlue.bmp", "marbleNorm.bmp" });
+		Mesh marbleGreen("Sphere.txt", { "marbleGreen.bmp", "marbleNorm.bmp" });
+		Mesh marbleYellow("Sphere.txt", { "marbleYellow.bmp", "marbleNorm.bmp" });
+		std::vector<Mesh*> marbleMeshes = { &marbleRed, &marbleBlue, &marbleGreen, &marbleYellow };
+
 		Mesh floor("Floor.txt", texturePaths1);
 		Mesh straightMesh("Straight.txt", texturePaths2);
 		Mesh dropMesh("Drop.txt", texturePaths2);
@@ -144,13 +149,19 @@ int main(int argc, char** argv)
 		marble.velocity = glm::vec3(0.0f);
 		marble.radius = 0.2f;
 		marble.invMass = 1.0f;
+		// TODO: Automate spawn system, probably use funnel at
+		// beginning
 		glm::vec3 spawns[] = {
 			glm::vec3(-6.7f, 4.5f, 4.75f), glm::vec3(-6.7f, 4.5f, 5.25f),
 			glm::vec3(-6.2f, 4.5f, 4.75f), glm::vec3(-6.2f, 4.5f, 5.25f),
 			glm::vec3(-6.7f, 4.9f, 4.75f), glm::vec3(-6.7f, 4.9f, 5.25f),
-			glm::vec3(-6.2f, 4.9f, 4.75f), glm::vec3(-6.2f, 4.9f, 5.25f)
+			glm::vec3(-6.2f, 4.9f, 4.75f), glm::vec3(-6.2f, 4.9f, 5.25f),
+			glm::vec3(-6.7f, 5.4f, 4.75f), glm::vec3(-6.7f, 5.4f, 5.25f),
+			glm::vec3(-6.2f, 5.4f, 4.75f), glm::vec3(-6.2f, 5.4f, 5.25f),
+			glm::vec3(-6.7f, 5.8f, 4.75f), glm::vec3(-6.7f, 5.8f, 5.25f),
+			glm::vec3(-6.2f, 5.8f, 4.75f), glm::vec3(-6.2f, 5.8f, 5.25f)
 		};
-		for (int i = 0; i < 8; i++) {
+		for (int i = 0; i < 4; i++) {
 			marble.pos = marble.prevPos = spawns[i];
 			solver.particles.push_back(marble);
 		}
@@ -215,7 +226,7 @@ int main(int argc, char** argv)
 			throw std::runtime_error("Shadow shader outputs don't match the sBuffer");
 		}
 
-		const float PHYSICS_DT = 1.0f / 165.0f;
+		const float PHYSICS_DT = 1.0f / 60.0f;
 		float accumulator = 0.0f;
 		Uint64 lastTime = SDL_GetTicksNS();
 
@@ -257,7 +268,7 @@ int main(int argc, char** argv)
 				glm::mat4 model = glm::translate(glm::mat4(1.0f), p.pos);
 				model = model * glm::mat4_cast(p.orientation);
 				model = glm::scale(model, glm::vec3(p.radius));
-				frameScene.push_back({ &sphere, model });
+				frameScene.push_back({ marbleMeshes[i % marbleMeshes.size()], model });
 			}
 
 			SDL_GetMouseState(&mouseX, &mouseY);

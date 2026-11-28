@@ -101,10 +101,22 @@
     <Image Include="grassDiffuse.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="marbleDiffuse.bmp">
+    <Image Include="trackDiffuse.bmp">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="marbleNorm.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="marbleRed.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="marbleBlue.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="marbleGreen.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="marbleYellow.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
