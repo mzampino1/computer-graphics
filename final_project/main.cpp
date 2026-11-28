@@ -36,6 +36,7 @@ struct TrackPiece {
 	Mesh* mesh;
 	std::string file;
 	glm::mat4 end;   // transform from this piece's start to its end (OpenGL coords)
+	glm::mat4 offset = glm::mat4(1.0f); // where the mesh sits relative to the piece's start
 };
 
 int main(int argc, char** argv)
@@ -115,20 +116,26 @@ int main(int argc, char** argv)
 		Mesh dropMesh("Drop.txt", texturePaths2);
 		Mesh curveLMesh("CurveL.txt", texturePaths2);
 		Mesh curveRMesh("CurveR.txt", texturePaths2);
+		Mesh funnelMesh("Funnel.txt", texturePaths2);
+		Mesh backstopMesh("Backstop.txt", texturePaths2);
 
 		glm::mat4 floorModel = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -2.0f, 0.0f));
 		std::vector<RenderObject> scene = {
 			{ &floor, glm::scale(floorModel, glm::vec3(60.0f, 1.0f, 60.0f)) }
 		};
 
-		TrackPiece straight{ &straightMesh, "Straight.txt", glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f))};
-		TrackPiece drop{ &dropMesh, "Drop.txt", glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, -0.75f, 0.0f))};
+		TrackPiece straight{ &straightMesh, "Straight.txt", glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, 0.0f, 0.0f)) };
+		TrackPiece drop{ &dropMesh, "Drop.txt", glm::translate(glm::mat4(1.0f), glm::vec3(2.0f, -0.75f, 0.0f)) };
 		TrackPiece curveL{ &curveLMesh, "CurveL.txt",
 			glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.5f, 0.0f, -1.5f)), glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) };
 		TrackPiece curveR{ &curveRMesh, "CurveR.txt",
 			glm::rotate(glm::translate(glm::mat4(1.0f), glm::vec3(1.5f, 0.0f, 1.5f)), glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f)) };
+		TrackPiece funnel{ &funnelMesh, "Funnel.txt",
+			glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, -2.25f, 0.0f)),    // end: next piece starts under the spout
+			glm::translate(glm::mat4(1.0f), glm::vec3(1.4f, -1.75f, 0.0f)) };  // offset: funnel ahead and below
 
 		std::vector<TrackPiece> course = {
+			funnel,
 			drop, drop, straight, curveL,
 			drop, straight, curveL,
 			drop, straight, curveR,
@@ -139,11 +146,18 @@ int main(int argc, char** argv)
 		PBDSolver solver;
 
 		// Place pieces end to end, each starting where the previous one ended
-		glm::mat4 cursor = glm::translate(glm::mat4(1.0f), glm::vec3(-7.0f, 4.0f, 5.0f));
+		glm::mat4 cursor = glm::translate(glm::mat4(1.0f), glm::vec3(-7.0f, 6.25f, 5.0f));
 		for (size_t i = 0; i < course.size(); i++) {
-			scene.push_back({ course[i].mesh, cursor });
-			solver.addTriangleMesh(course[i].file, cursor);
+			glm::mat4 model = cursor * course[i].offset;
+			scene.push_back({ course[i].mesh, model });
+			solver.addTriangleMesh(course[i].file, model);
 			cursor = cursor * course[i].end;
+
+			// Close the open start of the piece after a funnel
+			if (course[i].mesh == &funnelMesh) {
+				scene.push_back({ &backstopMesh, cursor });
+				solver.addTriangleMesh("Backstop.txt", cursor);
+			}
 		}
 
 		// Set up PBD
@@ -152,20 +166,14 @@ int main(int argc, char** argv)
 		marble.velocity = glm::vec3(0.0f);
 		marble.radius = 0.2f;
 		marble.invMass = 1.0f;
-		// TODO: Automate spawn system, probably use funnel at
-		// beginning
-		glm::vec3 spawns[] = {
-			glm::vec3(-6.7f, 4.5f, 4.75f), glm::vec3(-6.7f, 4.5f, 5.25f),
-			glm::vec3(-6.2f, 4.5f, 4.75f), glm::vec3(-6.2f, 4.5f, 5.25f),
-			glm::vec3(-6.7f, 4.9f, 4.75f), glm::vec3(-6.7f, 4.9f, 5.25f),
-			glm::vec3(-6.2f, 4.9f, 4.75f), glm::vec3(-6.2f, 4.9f, 5.25f),
-			glm::vec3(-6.7f, 5.4f, 4.75f), glm::vec3(-6.7f, 5.4f, 5.25f),
-			glm::vec3(-6.2f, 5.4f, 4.75f), glm::vec3(-6.2f, 5.4f, 5.25f),
-			glm::vec3(-6.7f, 5.8f, 4.75f), glm::vec3(-6.7f, 5.8f, 5.25f),
-			glm::vec3(-6.2f, 5.8f, 4.75f), glm::vec3(-6.2f, 5.8f, 5.25f)
-		};
-		for (int i = 0; i < 4; i++) {
-			marble.pos = marble.prevPos = spawns[i];
+
+		const int numMarbles = 12;
+		for (int i = 0; i < numMarbles; i++) {
+			float angle = i * 2.4f; // spreads marbles around the funnel
+			float radius = 0.35f * std::sqrt((float)i);
+			marble.pos = marble.prevPos = glm::vec3(-5.6f + radius * std::cos(angle),
+				6.6f + i * 0.25f,
+				5.0f + radius * std::sin(angle));
 			solver.particles.push_back(marble);
 		}
 
@@ -196,16 +204,16 @@ int main(int argc, char** argv)
 
 		// Construct light matrices based on skybox's sun
 		glm::vec3 lightDir = glm::vec3(0.44f, -0.4f, -0.8f);
-		glm::vec3 lightTarget = glm::vec3(-2.0f, 1.5f, -1.0f);
+		glm::vec3 lightTarget = glm::vec3(-2.0f, 3.0f, -1.0f);
 		glm::mat4 lightView = glm::lookAt(
 			lightTarget - 20.0f * lightDir,
 			lightTarget,
 			glm::vec3(0.0f, 1.0f, 0.0f)
 		);
 		glm::mat4 lightOrtho = glm::ortho(
-			-9.0f, 9.0f,    // left, right
-			-7.5f, 7.0f,    // bottom, top
-			9.5f, 31.0f     // near, far
+			-9.0f, 9.5f,     // left, right
+			-8.75f, 8.5f,    // bottom, top
+			8.5f, 56.0f      // near, far
 		);
 
 		// Set up uniform buffer objects (UBOs)

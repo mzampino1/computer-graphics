@@ -44,10 +44,12 @@
     <ClInclude Include="ubo.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Backstop.txt" />
     <Text Include="CurveL.txt" />
     <Text Include="CurveR.txt" />
     <Text Include="Drop.txt" />
     <Text Include="Floor.txt" />
+    <Text Include="Funnel.txt" />
     <Text Include="Screen.txt" />
     <Text Include="Sphere.txt" />
     <Text Include="Straight.txt" />
