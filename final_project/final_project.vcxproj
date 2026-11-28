@@ -67,8 +67,8 @@
     <Image Include="skybox\px.bmp" />
     <Image Include="skybox\py.bmp" />
     <Image Include="skybox\pz.bmp" />
-    <Image Include="trackDiffuse.bmp" />
     <Image Include="marbleNorm.bmp" />
+    <Image Include="trackOrange.bmp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>

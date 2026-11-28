@@ -113,9 +113,6 @@
     <Image Include="grassDiffuse.bmp">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="trackDiffuse.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="marbleNorm.bmp">
       <Filter>Resource Files</Filter>
     </Image>
@@ -147,6 +144,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="skybox\pz.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="trackOrange.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

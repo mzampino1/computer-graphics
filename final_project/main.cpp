@@ -100,8 +100,8 @@ int main(int argc, char** argv)
 			"grassNorm.bmp"
 		};
 		std::vector<std::string> texturePaths2 = {
-			"trackDiffuse.bmp",
-			"marbleNorm.bmp"
+			"trackOrange.bmp",
+			"trackNorm.bmp"
 		};
 
 		// Load meshes, textures, and shaders

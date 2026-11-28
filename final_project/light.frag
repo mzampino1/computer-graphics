@@ -60,7 +60,7 @@ void main()
 	}
 
 	// Ambient keeps shadowed areas from being black
-    vec3 ambient = 0.25 * albedo;
+    vec3 ambient = 0.3 * albedo;
 
     vec3 litColor = ambient + shadow * diffuse;
 
